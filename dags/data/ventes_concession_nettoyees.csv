@@ -1,0 +1,4 @@
+id_vente,date_vente,marque,modele,quantite,prix_unitaire,montant_total
+1,2026-09-12,PEUGEOT,208,1,21500.00,21500.0
+3,2026-09-14,TOYOTA,Yaris,2,22000.00,44000.0
+4,2026-09-15,VOLKSWAGEN,Golf,1,30000.00,30000.0
