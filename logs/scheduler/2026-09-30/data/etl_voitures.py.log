@@ -754,3 +754,192 @@
 [2026-09-30T09:24:17.250+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:24:17.250+0000] {dag.py:3239} INFO - Sync 1 DAGs
 [2026-09-30T09:24:17.281+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:24:17.280+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
 [2026-09-30T09:24:17.326+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.204 seconds
+[2026-09-30T09:24:47.866+0000] {processor.py:186} INFO - Started process (PID=4431) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:24:47.868+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:24:47.873+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:24:47.873+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:24:47.914+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:24:47.951+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:24:47.951+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:24:47.976+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:24:47.976+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:24:48.022+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.166 seconds
+[2026-09-30T09:25:18.454+0000] {processor.py:186} INFO - Started process (PID=4494) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:25:18.456+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:25:18.460+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:25:18.460+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:25:18.498+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:25:18.535+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:25:18.534+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:25:18.563+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:25:18.562+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:25:18.601+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.158 seconds
+[2026-09-30T09:25:48.970+0000] {processor.py:186} INFO - Started process (PID=4557) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:25:48.972+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:25:48.976+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:25:48.976+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:25:49.015+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:25:49.050+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:25:49.050+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:25:49.074+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:25:49.073+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:25:49.107+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.147 seconds
+[2026-09-30T09:26:19.350+0000] {processor.py:186} INFO - Started process (PID=4619) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:26:19.352+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:26:19.357+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:26:19.356+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:26:19.408+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:26:19.446+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:26:19.446+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:26:19.473+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:26:19.472+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:26:19.511+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.172 seconds
+[2026-09-30T09:28:04.742+0000] {processor.py:186} INFO - Started process (PID=76) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:28:04.744+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:28:04.751+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:28:04.750+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:28:04.828+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:28:04.910+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:28:04.910+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:28:04.949+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:28:04.948+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:28:04.989+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.264 seconds
+[2026-09-30T09:28:35.679+0000] {processor.py:186} INFO - Started process (PID=139) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:28:35.681+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:28:35.685+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:28:35.684+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:28:35.726+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:28:35.760+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:28:35.760+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:28:35.785+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:28:35.785+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:28:35.820+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.152 seconds
+[2026-09-30T09:29:05.971+0000] {processor.py:186} INFO - Started process (PID=202) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:29:05.973+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:29:05.980+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:29:05.980+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:29:06.023+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:29:06.071+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:29:06.070+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:29:06.103+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:29:06.103+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:29:06.144+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.187 seconds
+[2026-09-30T09:29:36.459+0000] {processor.py:186} INFO - Started process (PID=265) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:29:36.461+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:29:36.467+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:29:36.466+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:29:36.507+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:29:36.542+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:29:36.541+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:29:36.572+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:29:36.572+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:29:36.611+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.161 seconds
+[2026-09-30T09:30:07.090+0000] {processor.py:186} INFO - Started process (PID=328) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:30:07.092+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:30:07.098+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:30:07.097+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:30:07.138+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:30:07.176+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:30:07.176+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:30:07.206+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:30:07.206+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:30:07.252+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.172 seconds
+[2026-09-30T09:30:38.106+0000] {processor.py:186} INFO - Started process (PID=391) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:30:38.108+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:30:38.114+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:30:38.114+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:30:38.155+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:30:38.191+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:30:38.190+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:30:38.220+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:30:38.220+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:30:38.258+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.164 seconds
+[2026-09-30T09:31:08.671+0000] {processor.py:186} INFO - Started process (PID=454) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:31:08.673+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:31:08.680+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:31:08.679+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:31:08.723+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:31:08.755+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:31:08.755+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:31:08.780+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:31:08.779+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:31:08.815+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.155 seconds
+[2026-09-30T09:31:39.556+0000] {processor.py:186} INFO - Started process (PID=517) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:31:39.559+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:31:39.565+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:31:39.565+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:31:39.606+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:31:39.641+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:31:39.640+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:31:39.668+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:31:39.667+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:31:39.713+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.170 seconds
+[2026-09-30T09:32:09.828+0000] {processor.py:186} INFO - Started process (PID=580) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:32:09.830+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:32:09.835+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:32:09.835+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:32:09.876+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:32:09.916+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:32:09.916+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:32:09.949+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:32:09.948+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:32:09.991+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.174 seconds
+[2026-09-30T09:32:40.776+0000] {processor.py:186} INFO - Started process (PID=643) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:32:40.778+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:32:40.784+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:32:40.784+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:32:40.828+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:32:40.864+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:32:40.864+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:32:40.895+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:32:40.894+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:32:40.932+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.168 seconds
+[2026-09-30T09:33:11.886+0000] {processor.py:186} INFO - Started process (PID=706) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:33:11.888+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:33:11.893+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:33:11.892+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:33:11.934+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:33:11.969+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:33:11.968+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:33:12.001+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:33:12.001+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:33:12.046+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.171 seconds
+[2026-09-30T09:33:42.586+0000] {processor.py:186} INFO - Started process (PID=769) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:33:42.588+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:33:42.593+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:33:42.593+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:33:42.633+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:33:42.667+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:33:42.667+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:33:42.693+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:33:42.693+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:33:42.731+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.155 seconds
+[2026-09-30T09:34:13.160+0000] {processor.py:186} INFO - Started process (PID=832) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:34:13.162+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:34:13.169+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:34:13.168+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:34:13.210+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:34:13.244+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:34:13.244+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:34:13.269+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:34:13.269+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:34:13.303+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.154 seconds
+[2026-09-30T09:34:43.693+0000] {processor.py:186} INFO - Started process (PID=895) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:34:43.695+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:34:43.703+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:34:43.702+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:34:43.744+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:34:43.782+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:34:43.782+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:34:43.813+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:34:43.813+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:34:43.854+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.175 seconds
+[2026-09-30T09:35:14.394+0000] {processor.py:186} INFO - Started process (PID=958) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:35:14.396+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:35:14.403+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:35:14.402+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:35:14.450+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:35:14.489+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:35:14.489+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:35:14.520+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:35:14.520+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:35:14.560+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.176 seconds
+[2026-09-30T09:35:45.121+0000] {processor.py:186} INFO - Started process (PID=1021) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:35:45.123+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:35:45.128+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:35:45.128+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:35:45.166+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:35:45.200+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:35:45.200+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:35:45.229+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:35:45.229+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:35:45.270+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.158 seconds
+[2026-09-30T09:36:15.818+0000] {processor.py:186} INFO - Started process (PID=1084) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:36:15.820+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:36:15.825+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:36:15.825+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:36:15.862+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:36:15.896+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:36:15.896+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:36:15.920+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:36:15.920+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:36:15.958+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.150 seconds
+[2026-09-30T09:36:46.577+0000] {processor.py:186} INFO - Started process (PID=1147) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:36:46.579+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:36:46.584+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:36:46.584+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:36:46.626+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:36:46.660+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:36:46.660+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:36:46.687+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:36:46.686+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:36:46.721+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.155 seconds
+[2026-09-30T09:37:17.077+0000] {processor.py:186} INFO - Started process (PID=1210) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:37:17.079+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:37:17.086+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:37:17.085+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:37:17.128+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:37:17.162+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:37:17.162+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:37:17.188+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:37:17.187+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:37:17.229+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.168 seconds
+[2026-09-30T09:37:47.968+0000] {processor.py:186} INFO - Started process (PID=1273) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:37:47.970+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:37:47.975+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:37:47.974+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:37:48.015+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:37:48.049+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:37:48.049+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:37:48.076+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:37:48.075+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:37:48.114+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.157 seconds
+[2026-09-30T09:38:18.542+0000] {processor.py:186} INFO - Started process (PID=1336) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:38:18.544+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:38:18.548+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:38:18.547+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:38:18.585+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:38:18.618+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:38:18.618+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:38:18.645+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:38:18.645+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:38:18.684+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.154 seconds
+[2026-09-30T09:38:48.929+0000] {processor.py:186} INFO - Started process (PID=1399) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:38:48.931+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:38:48.939+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:38:48.938+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:38:48.994+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:38:49.042+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:38:49.041+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:38:49.072+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:38:49.072+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:38:49.114+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.200 seconds
+[2026-09-30T09:39:19.653+0000] {processor.py:186} INFO - Started process (PID=1462) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:39:19.654+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-09-30T09:39:19.660+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:39:19.659+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:39:19.699+0000] {processor.py:925} INFO - DAG(s) 'mon_premier_etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-09-30T09:39:19.733+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:39:19.732+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-09-30T09:39:19.759+0000] {logging_mixin.py:190} INFO - [2026-09-30T09:39:19.759+0000] {dag.py:4180} INFO - Setting next_dagrun for mon_premier_etl_voitures to None, run_after=None
+[2026-09-30T09:39:19.795+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.152 seconds

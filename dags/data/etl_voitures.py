@@ -45,7 +45,7 @@ def executer_etl():
 
 # 2. Configuration du DAG Airflow
 with DAG(
-    dag_id='mon_premier_etl_voitures',
+    dag_id='etl_voitures',
     start_date=datetime(2026, 1, 1),
     schedule_interval=None, # Exécution manuelle pour cet exemple
     catchup=False,
