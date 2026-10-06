@@ -1,0 +1,295 @@
+[2026-10-06T13:55:42.924+0000] {processor.py:186} INFO - Started process (PID=52) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:55:42.925+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T13:55:42.928+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:42.928+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:55:42.958+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:55:43.158+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.157+0000] {override.py:1900} INFO - Created Permission View: can edit on DAG:etl_voitures
+[2026-10-06T13:55:43.177+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.176+0000] {override.py:1900} INFO - Created Permission View: can delete on DAG:etl_voitures
+[2026-10-06T13:55:43.184+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.184+0000] {override.py:1900} INFO - Created Permission View: can read on DAG:etl_voitures
+[2026-10-06T13:55:43.192+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.192+0000] {override.py:1900} INFO - Created Permission View: menu access on DAG Run:etl_voitures
+[2026-10-06T13:55:43.200+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.200+0000] {override.py:1900} INFO - Created Permission View: can delete on DAG Run:etl_voitures
+[2026-10-06T13:55:43.208+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.207+0000] {override.py:1900} INFO - Created Permission View: can read on DAG Run:etl_voitures
+[2026-10-06T13:55:43.216+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.216+0000] {override.py:1900} INFO - Created Permission View: can create on DAG Run:etl_voitures
+[2026-10-06T13:55:43.217+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.217+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T13:55:43.231+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.230+0000] {dag.py:3262} INFO - Creating ORM DAG for etl_voitures
+[2026-10-06T13:55:43.232+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:55:43.232+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures to None, run_after=None
+[2026-10-06T13:55:43.249+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.330 seconds
+[2026-10-06T13:56:14.212+0000] {processor.py:186} INFO - Started process (PID=115) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:56:14.213+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T13:56:14.215+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:56:14.215+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:56:14.231+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:56:14.244+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:56:14.244+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T13:56:14.255+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:56:14.255+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures to None, run_after=None
+[2026-10-06T13:56:14.270+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.062 seconds
+[2026-10-06T13:56:44.574+0000] {processor.py:186} INFO - Started process (PID=178) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:56:44.575+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T13:56:44.577+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:56:44.577+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:56:44.592+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:56:44.606+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:56:44.605+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T13:56:44.615+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:56:44.615+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures to None, run_after=None
+[2026-10-06T13:56:44.641+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.071 seconds
+[2026-10-06T13:57:15.453+0000] {processor.py:186} INFO - Started process (PID=247) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:57:15.454+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T13:57:15.456+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:57:15.456+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:57:15.470+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T13:57:15.484+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:57:15.484+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T13:57:15.493+0000] {logging_mixin.py:190} INFO - [2026-10-06T13:57:15.493+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures to None, run_after=None
+[2026-10-06T13:57:15.507+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.058 seconds
+[2026-10-06T14:07:57.452+0000] {processor.py:186} INFO - Started process (PID=53) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:07:57.454+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:07:57.457+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.456+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:07:57.622+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:07:57.805+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.804+0000] {override.py:1900} INFO - Created Permission View: can delete on DAG:etl_voitures_pyspark
+[2026-10-06T14:07:57.812+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.812+0000] {override.py:1900} INFO - Created Permission View: can edit on DAG:etl_voitures_pyspark
+[2026-10-06T14:07:57.818+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.817+0000] {override.py:1900} INFO - Created Permission View: can read on DAG:etl_voitures_pyspark
+[2026-10-06T14:07:57.824+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.824+0000] {override.py:1900} INFO - Created Permission View: can create on DAG Run:etl_voitures_pyspark
+[2026-10-06T14:07:57.829+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.828+0000] {override.py:1900} INFO - Created Permission View: can delete on DAG Run:etl_voitures_pyspark
+[2026-10-06T14:07:57.834+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.833+0000] {override.py:1900} INFO - Created Permission View: menu access on DAG Run:etl_voitures_pyspark
+[2026-10-06T14:07:57.839+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.839+0000] {override.py:1900} INFO - Created Permission View: can read on DAG Run:etl_voitures_pyspark
+[2026-10-06T14:07:57.840+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.840+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:07:57.850+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.850+0000] {dag.py:3262} INFO - Creating ORM DAG for etl_voitures_pyspark
+[2026-10-06T14:07:57.851+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:07:57.851+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:07:57.871+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.423 seconds
+[2026-10-06T14:08:28.641+0000] {processor.py:186} INFO - Started process (PID=117) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:08:28.642+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:08:28.644+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:08:28.644+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:08:28.729+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:08:28.743+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:08:28.743+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:08:28.753+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:08:28.753+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:08:28.768+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.132 seconds
+[2026-10-06T14:08:59.376+0000] {processor.py:186} INFO - Started process (PID=180) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:08:59.377+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:08:59.379+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:08:59.378+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:08:59.464+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:08:59.480+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:08:59.480+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:08:59.495+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:08:59.495+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:08:59.514+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.141 seconds
+[2026-10-06T14:09:30.223+0000] {processor.py:186} INFO - Started process (PID=243) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:09:30.224+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:09:30.225+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:09:30.225+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:09:30.293+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:09:30.309+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:09:30.309+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:09:30.321+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:09:30.321+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:09:30.337+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.119 seconds
+[2026-10-06T14:10:00.885+0000] {processor.py:186} INFO - Started process (PID=312) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:10:00.886+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:10:00.888+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:10:00.887+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:10:00.953+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:10:00.966+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:10:00.965+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:10:00.974+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:10:00.974+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:10:00.986+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.105 seconds
+[2026-10-06T14:10:31.573+0000] {processor.py:186} INFO - Started process (PID=375) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:10:31.574+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:10:31.575+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:10:31.575+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:10:31.646+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:10:31.660+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:10:31.660+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:10:31.670+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:10:31.670+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:10:31.682+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.113 seconds
+[2026-10-06T14:11:02.318+0000] {processor.py:186} INFO - Started process (PID=438) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:11:02.319+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:11:02.321+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:11:02.320+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:11:02.386+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:11:02.399+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:11:02.399+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:11:02.409+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:11:02.409+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:11:02.422+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.107 seconds
+[2026-10-06T14:11:33.044+0000] {processor.py:186} INFO - Started process (PID=501) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:11:33.045+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:11:33.046+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:11:33.046+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:11:33.114+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:11:33.128+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:11:33.127+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:11:33.138+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:11:33.138+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:11:33.153+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.112 seconds
+[2026-10-06T14:12:03.825+0000] {processor.py:186} INFO - Started process (PID=564) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:12:03.826+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:12:03.827+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:12:03.827+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:12:03.913+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:12:03.929+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:12:03.929+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:12:03.942+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:12:03.941+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:12:03.959+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.138 seconds
+[2026-10-06T14:12:34.055+0000] {processor.py:186} INFO - Started process (PID=628) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:12:34.056+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:12:34.059+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:12:34.058+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:12:34.129+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:12:34.144+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:12:34.144+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:12:34.155+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:12:34.155+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:12:34.170+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.119 seconds
+[2026-10-06T14:13:04.322+0000] {processor.py:186} INFO - Started process (PID=689) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:13:04.323+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:13:04.325+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:13:04.325+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:13:04.402+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:13:04.416+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:13:04.416+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:13:04.425+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:13:04.425+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:13:04.442+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.125 seconds
+[2026-10-06T14:13:35.304+0000] {processor.py:186} INFO - Started process (PID=752) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:13:35.305+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:13:35.307+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:13:35.307+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:13:35.383+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:13:35.398+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:13:35.397+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:13:35.408+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:13:35.408+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:13:35.424+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.123 seconds
+[2026-10-06T14:14:05.555+0000] {processor.py:186} INFO - Started process (PID=815) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:14:05.557+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:14:05.558+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:14:05.558+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:14:05.636+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:14:05.650+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:14:05.649+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:14:05.661+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:14:05.661+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:14:05.675+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.124 seconds
+[2026-10-06T14:14:35.742+0000] {processor.py:186} INFO - Started process (PID=878) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:14:35.743+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:14:35.745+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:14:35.745+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:14:35.818+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:14:35.831+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:14:35.831+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:14:35.842+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:14:35.841+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:14:35.856+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.118 seconds
+[2026-10-06T14:15:05.956+0000] {processor.py:186} INFO - Started process (PID=942) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:15:05.957+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:15:05.958+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:15:05.958+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:15:06.036+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:15:06.052+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:15:06.052+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:15:06.064+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:15:06.064+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:15:06.082+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.130 seconds
+[2026-10-06T14:15:36.435+0000] {processor.py:186} INFO - Started process (PID=1004) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:15:36.437+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:15:36.438+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:15:36.438+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:15:36.525+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:15:36.543+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:15:36.542+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:15:36.556+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:15:36.556+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:15:36.575+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.143 seconds
+[2026-10-06T14:16:06.669+0000] {processor.py:186} INFO - Started process (PID=1068) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:16:06.670+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:16:06.672+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:16:06.671+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:16:06.751+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:16:06.765+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:16:06.765+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:16:06.776+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:16:06.776+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:16:06.791+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.126 seconds
+[2026-10-06T14:16:37.665+0000] {processor.py:186} INFO - Started process (PID=1130) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:16:37.666+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:16:37.667+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:16:37.667+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:16:37.733+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:16:37.746+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:16:37.746+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:16:37.756+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:16:37.756+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:16:37.770+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.108 seconds
+[2026-10-06T14:17:04.441+0000] {processor.py:186} INFO - Started process (PID=1193) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:04.442+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:17:04.444+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:04.443+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:04.520+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:04.535+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:04.535+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:17:04.544+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:04.544+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:17:04.562+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.124 seconds
+[2026-10-06T14:17:32.091+0000] {processor.py:186} INFO - Started process (PID=1256) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:32.092+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:17:32.093+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:32.093+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:32.173+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:32.188+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:32.188+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:17:32.391+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:32.391+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:17:32.409+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.321 seconds
+[2026-10-06T14:17:37.139+0000] {processor.py:186} INFO - Started process (PID=1257) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:37.140+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:17:37.142+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:37.141+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:37.224+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:37.240+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:37.240+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:17:37.252+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:37.252+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:17:37.270+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.136 seconds
+[2026-10-06T14:17:54.881+0000] {processor.py:186} INFO - Started process (PID=1314) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:54.883+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:17:54.884+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:54.884+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:54.901+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:54.900+0000] {dagbag.py:387} ERROR - Failed to import: /opt/airflow/dags/data/etl_voitures.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/dagbag.py", line 383, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 991, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1129, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1059, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/airflow/dags/data/etl_voitures.py", line 23
+    .master("local[*]") \  
+                           ^
+SyntaxError: unexpected character after line continuation character
+[2026-10-06T14:17:54.901+0000] {processor.py:927} WARNING - No viable dags retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:54.915+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.038 seconds
+[2026-10-06T14:17:55.910+0000] {processor.py:186} INFO - Started process (PID=1315) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:55.911+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:17:55.912+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:55.912+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:55.929+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:55.928+0000] {dagbag.py:387} ERROR - Failed to import: /opt/airflow/dags/data/etl_voitures.py
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/dagbag.py", line 383, in parse
+    loader.exec_module(new_module)
+  File "<frozen importlib._bootstrap_external>", line 991, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1129, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1059, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/airflow/dags/data/etl_voitures.py", line 23
+    .master("local[*]") \  
+                           ^
+SyntaxError: unexpected character after line continuation character
+[2026-10-06T14:17:55.929+0000] {processor.py:927} WARNING - No viable dags retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:55.943+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.037 seconds
+[2026-10-06T14:17:57.970+0000] {processor.py:186} INFO - Started process (PID=1316) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:57.971+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:17:57.972+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:57.972+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:58.051+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:17:58.066+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:58.066+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:17:58.220+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:17:58.220+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:17:58.237+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.272 seconds
+[2026-10-06T14:18:07.045+0000] {processor.py:186} INFO - Started process (PID=1323) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:18:07.046+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:18:07.047+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:18:07.047+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:18:07.128+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:18:07.144+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:18:07.143+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:18:07.324+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:18:07.323+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:18:07.341+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.301 seconds
+[2026-10-06T14:18:37.520+0000] {processor.py:186} INFO - Started process (PID=1386) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:18:37.521+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:18:37.523+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:18:37.523+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:18:37.589+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:18:37.604+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:18:37.604+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:18:37.615+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:18:37.615+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:18:37.792+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.276 seconds
+[2026-10-06T14:19:00.863+0000] {processor.py:186} INFO - Started process (PID=1443) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:00.864+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:19:00.866+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:00.866+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:00.948+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:00.961+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:00.960+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:19:00.970+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:00.970+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:19:01.140+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.282 seconds
+[2026-10-06T14:19:31.743+0000] {processor.py:186} INFO - Started process (PID=1512) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:31.745+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:19:31.746+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:31.746+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:31.816+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:31.831+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:31.830+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:19:31.841+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:31.841+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:19:31.855+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.116 seconds
+[2026-10-06T14:19:54.041+0000] {processor.py:186} INFO - Started process (PID=1569) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:54.042+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:19:54.043+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:54.043+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:54.115+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:19:54.283+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:54.283+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:19:54.292+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:19:54.292+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:19:54.308+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.270 seconds
+[2026-10-06T14:20:25.296+0000] {processor.py:186} INFO - Started process (PID=1632) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:20:25.297+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:20:25.300+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:20:25.299+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:20:25.367+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:20:25.380+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:20:25.380+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:20:25.530+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:20:25.530+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:20:25.543+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.250 seconds
+[2026-10-06T14:20:56.468+0000] {processor.py:186} INFO - Started process (PID=1695) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:20:56.470+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:20:56.471+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:20:56.471+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:20:56.540+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:20:56.554+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:20:56.554+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:20:56.564+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:20:56.564+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:20:56.579+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.114 seconds
+[2026-10-06T14:21:23.611+0000] {processor.py:186} INFO - Started process (PID=1758) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:21:23.612+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:21:23.614+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:21:23.613+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:21:23.853+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:21:23.865+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:21:23.865+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:21:23.875+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:21:23.875+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:21:23.892+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.285 seconds
+[2026-10-06T14:21:24.639+0000] {processor.py:186} INFO - Started process (PID=1759) to work on /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:21:24.640+0000] {processor.py:914} INFO - Processing file /opt/airflow/dags/data/etl_voitures.py for tasks to queue
+[2026-10-06T14:21:24.642+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:21:24.641+0000] {dagbag.py:588} INFO - Filling up the DagBag from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:21:24.883+0000] {processor.py:925} INFO - DAG(s) 'etl_voitures_pyspark' retrieved from /opt/airflow/dags/data/etl_voitures.py
+[2026-10-06T14:21:24.896+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:21:24.896+0000] {dag.py:3239} INFO - Sync 1 DAGs
+[2026-10-06T14:21:24.906+0000] {logging_mixin.py:190} INFO - [2026-10-06T14:21:24.905+0000] {dag.py:4180} INFO - Setting next_dagrun for etl_voitures_pyspark to None, run_after=None
+[2026-10-06T14:21:24.924+0000] {processor.py:208} INFO - Processing /opt/airflow/dags/data/etl_voitures.py took 0.289 seconds
