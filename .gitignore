@@ -1,0 +1,24 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# --- IDEs & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Airflow & Spark (Outputs & Logs) ---
+# Dossiers de sortie et fichiers temporaires générés par vos scripts PySpark
+dags/data/output/
+logs/
+*.log
+
+# Base de données locale Airflow potentielle
+airflow.db
+*.sqlite
+*.sqlite3
