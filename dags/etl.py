@@ -26,7 +26,7 @@ def executer_etl_paris_pyspark():
     df_join = s1_conso.join(
         s4_iris,
         (lower(trim(s1_conso.Nom_Rue)) == lower(trim(s4_iris.ID_Rue))) & 
-        (trim(s1_conso.Code_Postal) == trim(s4_iris.Code_Postal)),
+        (trim(s1_conso.Code_Postal) == trim(s4_iris.ID_Ville)),
         "inner"
     )
         
@@ -53,7 +53,7 @@ def executer_etl_evry_pyspark():
     dossier_temp = '/opt/airflow/dags/data/output/temp_evry'
     fichier_final = '/opt/airflow/dags/data/output/Consommation_IRIS_Evry.csv'
         
-    os.makedirs('/opt/airflow/output', exist_ok=True)
+    os.makedirs('/opt/airflow/dags/data/output', exist_ok=True) 
         
     s2_conso = spark.read.csv(chemin_s2, header=True, inferSchema=True)
     s4_iris = spark.read.csv(chemin_s4, header=True, inferSchema=True)
@@ -61,7 +61,7 @@ def executer_etl_evry_pyspark():
     df_join = s2_conso.join(
         s4_iris,
         (lower(trim(s2_conso.Nom_Rue)) == lower(trim(s4_iris.ID_Rue))) & 
-        (trim(s2_conso.Code_Postal) == trim(s4_iris.Code_Postal)),
+        (trim(s2_conso.Code_Postal) == trim(s4_iris.ID_Ville)),
         "inner"
     )
         
