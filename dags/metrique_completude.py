@@ -13,10 +13,10 @@ OUTPUT_DIR = os.path.join(DATA_DIR, "output", "audit_results", "completude")
 SORTIE = os.path.join(OUTPUT_DIR, "audit_completude.csv")
 
 SOURCES = {
-    "S1_Consommation": ("NB_KW_Jour", "ID_Adr"),
-    "S2_Consommation": ("NB_KW_Jour", "ID_Adr"),
-    "S1_Population": ("Adresse",),
-    "S2_Population": ("Adresse",),
+    "Consommation_Paris": ("NB_KW_Jour", "ID_Adr"),
+    "Consommation_Evry": ("NB_KW_Jour", "ID_Adr"),
+    "Population_Paris": ("Adresse",),
+    "Population_Evry": ("Adresse",),
 }
 
 COLONNES_EXPORT = [
@@ -139,7 +139,7 @@ with DAG(
     max_active_runs=1,
     max_active_tasks=2,
     tags=["datascale", "qualite", "completude"],
-    description="Mesure de la complétude S1/S2, sans fichiers intermédiaires",
+    description="Mesure de la complétude Paris/Evry, sans fichiers intermédiaires",
 ) as dag:
 
     fins = []

@@ -18,8 +18,8 @@ TMP_ROOT = os.path.join(OUTPUT_DIR, ".tmp_metrique_doublons")
 SEUIL = 0.85  # Similarite strictement superieure a 0,85.
 
 SOURCES = {
-    "consommation": ("S1_Consommation", "S2_Consommation"),
-    "population": ("S1_Population", "S2_Population"),
+    "consommation": ("Consommation_Paris", "Consommation_Evry"),
+    "population": ("Population_Paris", "Population_Evry"),
 }
 SCHEMAS = {
     "consommation": {"Nom_Rue": ("Nom_Rue",), "Code_Postal": ("Code_Postal",)},
@@ -75,13 +75,13 @@ def normaliser_rue(chaine):
 
 
 def charger_sources(categorie, **context):
-    """Etape 1 : lecture des CSV S1 et S2, en gardant la provenance."""
+    """Etape 1 : lecture des CSV Paris et Evry, en gardant la provenance."""
     base = os.path.join(dossier_execution(context), categorie)
     os.makedirs(base, exist_ok=True)
     with session_spark("Doublons_chargement_" + categorie) as spark:
-        s1, s2 = SOURCES[categorie]
+        paris, evry = SOURCES[categorie]
         spec = SCHEMAS[categorie]
-        df = lire_csv(spark, s1, spec).unionByName(lire_csv(spark, s2, spec))
+        df = lire_csv(spark, paris, spec).unionByName(lire_csv(spark, evry, spec))
         df.write.mode("overwrite").parquet(os.path.join(base, "01_sources"))
 
 
