@@ -13,11 +13,13 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+from pyspark.sql.window import Window
 
 DATA_DIR = "/opt/airflow/dags/data"
 OUTPUT_DIR = os.path.join(DATA_DIR, "output", "metrique_completude")
 SORTIE = os.path.join(OUTPUT_DIR, "metriques_completude.csv")
 TMP_ROOT = os.path.join(OUTPUT_DIR, ".tmp_metrique_completude")
+REMEDIATION_DIR = os.path.join(OUTPUT_DIR, "remediation")
 
 # Perimetre exact de la section 3.3 du rapport (S1/S2 Conso et Population).
 SOURCES = {
@@ -146,6 +148,156 @@ def nettoyer_intermediaires(**context):
     shutil.rmtree(dossier_execution(context), ignore_errors=True)
 
 
+def exporter_csv_unique(df, chemin):
+    """Ecrit un CSV unique via un dossier temporaire Spark."""
+    dossier = chemin + ".tmp"
+    shutil.rmtree(dossier, ignore_errors=True)
+    df.coalesce(1).write.mode("overwrite").option("header", True).csv(dossier)
+    parties = [
+        nom for nom in os.listdir(dossier)
+        if nom.startswith("part-") and nom.endswith(".csv")
+    ]
+    if len(parties) != 1:
+        raise RuntimeError(f"Fichier Spark attendu introuvable dans {dossier}")
+    os.makedirs(os.path.dirname(chemin), exist_ok=True)
+    os.replace(os.path.join(dossier, parties[0]), chemin)
+    shutil.rmtree(dossier, ignore_errors=True)
+
+
+def remedier_completude(source, **context):
+    """Impute la consommation par segment IRIS/CSP et isole les clés absentes."""
+    if source not in ("S1", "S2"):
+        raise ValueError(f"Source de remédiation inconnue : {source}")
+
+    consommation_path = os.path.join(DATA_DIR, f"{source}_Consommation.csv")
+    population_path = os.path.join(DATA_DIR, f"{source}_Population.csv")
+    iris_path = os.path.join(DATA_DIR, "S4_IRIS.csv")
+
+    with session_spark("Completude_remedier_" + source) as spark:
+        consommation = spark.read.option("header", True).option(
+            "inferSchema", True
+        ).csv(consommation_path)
+        population = spark.read.option("header", True).option(
+            "inferSchema", True
+        ).csv(population_path)
+        iris = spark.read.option("header", True).option(
+            "inferSchema", True
+        ).csv(iris_path)
+
+        cle_conso = F.trim(consommation.ID_Adr.cast("string"))
+        cle_population = F.trim(population.Adresse.cast("string"))
+        conso_avec_statut = consommation.withColumn(
+            "_cle_absente",
+            consommation.ID_Adr.isNull() | (cle_conso == "") |
+            F.lower(cle_conso).isin("nan", "null"),
+        )
+        quarantine = conso_avec_statut.filter(F.col("_cle_absente")).drop(
+            "_cle_absente"
+        )
+        valides = conso_avec_statut.filter(~F.col("_cle_absente")).drop(
+            "_cle_absente"
+        )
+
+        population_valide = population.filter(
+            population.Adresse.isNotNull()
+            & (cle_population != "")
+            & ~F.lower(cle_population).isin("nan", "null")
+        ).select(
+            F.trim(population.Adresse.cast("string")).alias("_adresse"),
+            population.CSP.alias("_csp"),
+        )
+        iris_ref_brut = iris.select(
+            F.trim(iris.ID_Rue.cast("string")).alias("_rue"),
+            F.trim(iris.ID_Ville.cast("string")).alias("_ville"),
+            iris.ID_Iris.alias("_iris"),
+        )
+        fenetre_iris = Window.partitionBy("_rue", "_ville").orderBy(
+            F.desc("_nombre")
+        )
+        iris_ref = (
+            iris_ref_brut.groupBy("_rue", "_ville", "_iris")
+            .count()
+            .withColumnRenamed("count", "_nombre")
+            .withColumn("_rang", F.row_number().over(fenetre_iris))
+            .filter(F.col("_rang") == 1)
+            .drop("_nombre", "_rang")
+        )
+
+        # Renommer la clé de population avant la jointure pour éviter une
+        # condition ambiguë après l'enrichissement.
+        enrichi = (
+            valides.withColumn("_adresse_conso", F.trim(valides.ID_Adr.cast("string")))
+            .join(
+                population_valide.withColumnRenamed("_adresse", "_adresse_pop"),
+                F.col("_adresse_conso") == F.col("_adresse_pop"),
+                "left",
+            )
+            .drop("_adresse_pop")
+        )
+        enrichi = enrichi.join(
+            iris_ref,
+            (
+                F.lower(F.trim(enrichi.Nom_Rue.cast("string")))
+                == F.lower(F.trim(iris_ref._rue.cast("string")))
+            )
+            & (
+                F.trim(enrichi.Code_Postal.cast("string"))
+                == F.trim(iris_ref._ville.cast("string"))
+            ),
+            "left",
+        )
+        enrichi = enrichi.withColumn(
+            "_nb_manquant",
+            F.col("NB_KW_Jour").isNull()
+            | F.isnan(F.col("NB_KW_Jour").cast("double")),
+        )
+        moyennes = (
+            enrichi.filter(
+                ~F.col("_nb_manquant")
+                & F.col("_iris").isNotNull()
+                & F.col("_csp").isNotNull()
+            )
+            .groupBy("_iris", "_csp")
+            .agg(F.avg("NB_KW_Jour").alias("_moyenne_segment"))
+        )
+        remedie = (
+            enrichi.join(moyennes, ["_iris", "_csp"], "left")
+            .withColumn(
+                "NB_KW_Jour",
+                F.when(
+                    F.col("_nb_manquant") & F.col("_moyenne_segment").isNotNull(),
+                    F.round(F.col("_moyenne_segment"), 5),
+                ).otherwise(F.col("NB_KW_Jour")),
+            )
+        )
+        non_imputables = remedie.filter(
+            F.col("NB_KW_Jour").isNull()
+            | F.isnan(F.col("NB_KW_Jour").cast("double"))
+        )
+        colonnes_source = valides.columns
+        remedie = remedie.select(*colonnes_source)
+        non_imputables = non_imputables.select(*colonnes_source)
+
+        sortie = os.path.join(REMEDIATION_DIR, f"{source}_Consommation_nettoyee.csv")
+        quarantaine = os.path.join(
+            REMEDIATION_DIR, f"{source}_Consommation_quarantaine.csv"
+        )
+        non_imputables_path = os.path.join(
+            REMEDIATION_DIR, f"{source}_Consommation_non_imputable.csv"
+        )
+        exporter_csv_unique(remedie, sortie)
+        exporter_csv_unique(quarantine, quarantaine)
+        exporter_csv_unique(non_imputables, non_imputables_path)
+
+
+def remedier_s1(**context):
+    remedier_completude("S1", **context)
+
+
+def remedier_s2(**context):
+    remedier_completude("S2", **context)
+
+
 with DAG(
     dag_id="metrique_completude",
     start_date=datetime(2026, 10, 13),
@@ -184,4 +336,14 @@ with DAG(
         task_id="nettoyer_fichiers_temporaires",
         python_callable=nettoyer_intermediaires,
     )
-    fins >> export >> nettoyage
+    remediations = [
+        PythonOperator(
+            task_id="remedier_s1",
+            python_callable=remedier_s1,
+        ),
+        PythonOperator(
+            task_id="remedier_s2",
+            python_callable=remedier_s2,
+        ),
+    ]
+    fins >> export >> remediations >> nettoyage
