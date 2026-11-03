@@ -270,7 +270,7 @@ def exporter_csv(**context):
 
 
 with DAG(
-    dag_id="mesure_heterogeneite",
+    dag_id="mesure_heterogeneite_granularite",
     start_date=datetime(2026, 1, 1),
     schedule_interval=None,
     catchup=False,
