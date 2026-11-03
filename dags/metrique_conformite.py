@@ -18,7 +18,6 @@ SOURCES = {
     'Consommation_Evry': ('Consommation_Evry.csv', 'S2_Consommation.csv'),
     'Population_Paris': ('Population_Paris.csv', 'S1_Population.csv'),
     'Population_Evry': ('Population_Evry.csv', 'S2_Population.csv'),
-    'IRIS': ('IRIS.csv', 'Iris.csv', 'S4_IRIS.csv'),
     'CSP': ('CSP.csv', 'Csp.csv', 'S3_CSP.csv'),
 }
 COLONNES_ATTENDUES = {
@@ -26,7 +25,6 @@ COLONNES_ATTENDUES = {
     'Consommation_Evry': ('Code_Postal',),
     'Population_Paris': ('CSP',),
     'Population_Evry': ('CSP',),
-    'IRIS': ('ID_Ville',),
     'CSP': ('ID_CSP',),
 }
 COLONNES_EXPORT = [
@@ -124,13 +122,6 @@ def identifier_anomalies(source, **context):
             nb_erreurs = df.filter(~F.coalesce(code_postal.rlike(r'^\d{5}$'), F.lit(False))).count()
             return [{'mesure': 'Conformite_Code_Postal', 'total': nb_lignes, 'erreurs': nb_erreurs}]
 
-        if source == 'IRIS':
-            # ID_Ville est un nom de ville, PAS un code postal.
-            ville = normaliser_texte(F.col('ID_Ville'))
-            ville_conforme = ville.isin('PARIS', 'EVRY COURCOURONNES')
-            nb_erreurs = df.filter(~ville_conforme).count()
-            return [{'mesure': 'Conformite_Nom_Ville_IRIS', 'total': nb_lignes, 'erreurs': nb_erreurs}]
-
         # Conformite CSP brute : jointure exacte ID/CSP (utile pour mesurer la qualite initiale).
         # Conformite CSP normalisee : meme left_anti apres conversion des libelles en codes.
         referentiel = (lire_csv(spark, infos['chemin_csp'])
@@ -199,7 +190,6 @@ GROUPES = {
     'Consommation_Evry': 'groupe_conso_evry',
     'Population_Paris': 'groupe_pop_paris',
     'Population_Evry': 'groupe_pop_evry',
-    'IRIS': 'groupe_iris',
 }
 
 with DAG(
@@ -210,7 +200,7 @@ with DAG(
     max_active_runs=1,
     max_active_tasks=3,
     tags=['datascale', 'conformite'],
-    description='Conformite des codes postaux, villes et CSP (avant/apres harmonisation)',
+    description='Conformite des codes postaux et CSP (avant/apres harmonisation)',
 ) as dag:
     fins = []
     for source, identifiant_groupe in GROUPES.items():
