@@ -1,11 +1,5 @@
-"""DAG Airflow 2.10.2 / PySpark : mesure de la completude .
-"""
-
 import csv
-import hashlib
-import json
 import os
-import shutil
 from contextlib import contextmanager
 from datetime import datetime
 
@@ -15,11 +9,9 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 DATA_DIR = "/opt/airflow/dags/data"
-OUTPUT_DIR = os.path.join(DATA_DIR, "output", "metrique_completude")
-SORTIE = os.path.join(OUTPUT_DIR, "metriques_completude.csv")
-TMP_ROOT = os.path.join(OUTPUT_DIR, ".tmp_metrique_completude")
+OUTPUT_DIR = os.path.join(DATA_DIR, "output", "audit_results", "completude")
+SORTIE = os.path.join(OUTPUT_DIR, "audit_completude.csv")
 
-# Perimetre exact de la section 3.3 du rapport (S1/S2 Conso et Population).
 SOURCES = {
     "S1_Consommation": ("NB_KW_Jour", "ID_Adr"),
     "S2_Consommation": ("NB_KW_Jour", "ID_Adr"),
@@ -37,12 +29,6 @@ COLONNES_EXPORT = [
 ]
 
 
-def dossier_execution(context):
-    """Chemin propre a chaque execution du DAG, commun a toutes les taches."""
-    identifiant = hashlib.sha256(context["run_id"].encode("utf-8")).hexdigest()[:24]
-    return os.path.join(TMP_ROOT, identifiant)
-
-
 @contextmanager
 def session_spark(nom):
     spark = SparkSession.builder.appName(nom).master("local[*]").getOrCreate()
@@ -52,98 +38,97 @@ def session_spark(nom):
         spark.stop()
 
 
-def charger_source(source, **context):
-    """Etape 1 : lire le CSV brut sans inference de types pour preserver les manquants."""
-    fichier = os.path.join(DATA_DIR, source + ".csv")
-    if not os.path.isfile(fichier):
-        raise FileNotFoundError(f"Fichier source introuvable : {fichier}")
-    colonnes_attendues = SOURCES[source]
-    sortie = os.path.join(dossier_execution(context), source, "01_sources")
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    with session_spark("Completude_charger_" + source) as spark:
-        donnees = spark.read.option("header", True).option("inferSchema", False).csv(fichier)
-        absentes = [c for c in colonnes_attendues if c not in donnees.columns]
+def verifier_source(source):
+    """Tâche 1 : vérifier le fichier et son en-tête, sans démarrer Spark."""
+    chemin = os.path.join(DATA_DIR, source + ".csv")
+    if not os.path.isfile(chemin):
+        raise FileNotFoundError(f"Fichier source introuvable : {chemin}")
+    with open(chemin, "r", newline="", encoding="utf-8-sig") as fichier:
+        entete = next(csv.reader(fichier), [])
+    absentes = [c for c in SOURCES[source] if c not in entete]
+    if absentes:
+        raise ValueError(f"Colonnes absentes de {source} : {absentes}. Présentes : {entete}")
+    print(f"Source vérifiée : {source} ({', '.join(SOURCES[source])})")
+
+
+def mesurer_completude(source):
+    """Tâche 2 : lecture, détection et agrégation en UNE session Spark.
+
+    Seul un petit objet Python (1 ou 2 lignes de métriques) est retourné en XCom.
+    """
+    chemin = os.path.join(DATA_DIR, source + ".csv")
+    attributs = SOURCES[source]
+    with session_spark("DQ_Completude_" + source) as spark:
+        donnees = spark.read.option("header", True).option("inferSchema", False).csv(chemin)
+        absentes = [c for c in attributs if c not in donnees.columns]
         if absentes:
-            raise ValueError(f"Colonnes absentes de {source} : {absentes}. Disponibles : {donnees.columns}")
-        # Conserver le nombre de lignes, y compris celles entierement nulles.
-        donnees.select(*colonnes_attendues).write.mode("overwrite").parquet(sortie)
+            raise ValueError(f"Colonnes absentes de {source} : {absentes}")
 
-
-def preparer_indicateurs(source, **context):
-    """Etape 2 : signaler NULL, chaine vide et NaN, sans filtrer de lignes."""
-    base = os.path.join(dossier_execution(context), source)
-    with session_spark("Completude_preparer_" + source) as spark:
-        donnees = spark.read.parquet(os.path.join(base, "01_sources"))
-        for attribut in SOURCES[source]:
-            # CSV sans schema infere : tout est texte, 'NaN' est une valeur manquante.
+        agregations = [F.count(F.lit(1)).alias("total")]
+        for attribut in attributs:
             texte = F.trim(F.col(attribut).cast("string"))
             manquant = (
                 F.col(attribut).isNull()
                 | (texte == "")
                 | F.lower(texte).isin("nan", "null")
             )
-            donnees = donnees.withColumn("manquant_" + attribut, manquant)
-        donnees.select(*("manquant_" + c for c in SOURCES[source])) \
-            .write.mode("overwrite").parquet(os.path.join(base, "02_indicateurs"))
-
-
-def calculer_taux(source, **context):
-    """Etape 3 : mesurer les taux sur toutes les lignes, sans rejeter les incompletes."""
-    base = os.path.join(dossier_execution(context), source)
-    with session_spark("Completude_calculer_" + source) as spark:
-        donnees = spark.read.parquet(os.path.join(base, "02_indicateurs"))
-        agregations = [F.count(F.lit(1)).alias("total")]
-        for attribut in SOURCES[source]:
             agregations.append(
-                F.sum(F.when(F.col("manquant_" + attribut), 1).otherwise(0))
-                .alias("manquants_" + attribut)
+                F.sum(F.when(manquant, F.lit(1)).otherwise(F.lit(0))).alias("manquants_" + attribut)
             )
-        resultats = donnees.agg(*agregations).first()
-        total = resultats["total"]
-        categorie = "consommation" if "Consommation" in source else "population"
-        mesures = []
-        for attribut in SOURCES[source]:
-            manquants = resultats["manquants_" + attribut] or 0
-            # Aucune ligne = taux non defini (pas artificiellement 100 %).
-            completude = round(100 * (total - manquants) / total, 2) if total else None
-            manquants_pct = round(100 * manquants / total, 2) if total else None
-            mesures.append({
-                "type_mesure": (
-                    "Valeurs manquantes métiers" if attribut == "NB_KW_Jour"
-                    else "Clés primaires manquantes"
-                ),
-                "categorie": categorie,
-                "table_auditee": source,
-                "attribut_audite": attribut,
-                "taux_completude_pct": completude,
-                "taux_valeurs_manquantes_pct": manquants_pct,
-            })
-    os.makedirs(base, exist_ok=True)
-    with open(os.path.join(base, "03_metriques.json"), "w", encoding="utf-8") as f:
-        json.dump(mesures, f, ensure_ascii=False)
+        resultat = donnees.agg(*agregations).first()
+
+    total = int(resultat["total"])
+    categorie = "consommation" if "Consommation" in source else "population"
+    lignes = []
+    for attribut in attributs:
+        nb_manquants = int(resultat["manquants_" + attribut] or 0)
+        lignes.append({
+            "type_mesure": "Valeurs manquantes métiers" if attribut == "NB_KW_Jour" else "Clés primaires manquantes",
+            "categorie": categorie,
+            "table_auditee": source,
+            "attribut_audite": attribut,
+            "taux_completude_pct": round(100 * (total - nb_manquants) / total, 2) if total else None,
+            "taux_valeurs_manquantes_pct": round(100 * nb_manquants / total, 2) if total else None,
+        })
+    return lignes
+
+
+def valider_resultats(source, **context):
+    """Tâche 3 : contrôle des valeurs calculées, sans Spark ni fichier temporaire."""
+    ti = context["ti"]
+    lignes = ti.xcom_pull(task_ids=f"calculer_completude_{source.lower()}")
+    if not isinstance(lignes, list) or len(lignes) != len(SOURCES[source]):
+        raise ValueError(f"Résultat incomplet ou absent pour {source}")
+    for ligne in lignes:
+        if ligne["table_auditee"] != source or ligne["attribut_audite"] not in SOURCES[source]:
+            raise ValueError(f"Ligne incohérente pour {source} : {ligne}")
+        completude = ligne["taux_completude_pct"]
+        manquantes = ligne["taux_valeurs_manquantes_pct"]
+        if completude is not None:
+            if manquantes is None or not (0 <= completude <= 100 and 0 <= manquantes <= 100):
+                raise ValueError(f"Taux hors bornes : {ligne}")
+            if abs(completude + manquantes - 100) > 0.02:
+                raise ValueError(f"Taux incohérents : {ligne}")
+    return lignes
 
 
 def exporter_metriques(**context):
-    """Etape 4 : exporter un seul CSV, lisible directement par un dashboard."""
-    base = dossier_execution(context)
+    """Tâche finale : fichier unique pour les dashboards, sans dossier temporaire."""
+    ti = context["ti"]
     lignes = []
     for source in SOURCES:
-        chemin = os.path.join(base, source, "03_metriques.json")
-        with open(chemin, encoding="utf-8") as f:
-            for mesure in json.load(f):
-                lignes.append(mesure)
+        mesures = ti.xcom_pull(task_ids=f"valider_resultats_{source.lower()}")
+        if not isinstance(mesures, list) or len(mesures) != len(SOURCES[source]):
+            raise ValueError(f"Mesures manquantes pour {source}")
+        lignes.extend(mesures)
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    temporaire = os.path.join(base, "metriques_completude.csv.tmp")
-    with open(temporaire, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=COLONNES_EXPORT)
+    # L'écriture directe évite tout fichier ou dossier temporaire.
+    with open(SORTIE, "w", newline="", encoding="utf-8") as fichier:
+        writer = csv.DictWriter(fichier, fieldnames=COLONNES_EXPORT)
         writer.writeheader()
         writer.writerows(lignes)
-    os.replace(temporaire, SORTIE)
-
-
-def nettoyer_intermediaires(**context):
-    """Etape 5 : supprimer uniquement les fichiers temporaires de cette execution."""
-    shutil.rmtree(dossier_execution(context), ignore_errors=True)
+    print(f"Export de {len(lignes)} mesures : {SORTIE}")
 
 
 with DAG(
@@ -152,36 +137,34 @@ with DAG(
     schedule_interval=None,
     catchup=False,
     max_active_runs=1,
+    max_active_tasks=2,
     tags=["datascale", "qualite", "completude"],
-    description="Mesure par table et attribut des taux de completude des sources S1/S2",
+    description="Mesure de la complétude S1/S2, sans fichiers intermédiaires",
 ) as dag:
 
-    def pipeline_source(source):
-        chargement = PythonOperator(
-            task_id=f"charger_{source.lower()}",
-            python_callable=charger_source,
-            op_kwargs={"source": source},
-        )
-        preparation = PythonOperator(
-            task_id=f"identifier_manquants_{source.lower()}",
-            python_callable=preparer_indicateurs,
+    fins = []
+    for source in SOURCES:
+        identifiant = source.lower()
+        verification = PythonOperator(
+            task_id=f"verifier_source_{identifiant}",
+            python_callable=verifier_source,
             op_kwargs={"source": source},
         )
         calcul = PythonOperator(
-            task_id=f"calculer_completude_{source.lower()}",
-            python_callable=calculer_taux,
+            task_id=f"calculer_completude_{identifiant}",
+            python_callable=mesurer_completude,
             op_kwargs={"source": source},
         )
-        chargement >> preparation >> calcul
-        return calcul
+        validation = PythonOperator(
+            task_id=f"valider_resultats_{identifiant}",
+            python_callable=valider_resultats,
+            op_kwargs={"source": source},
+        )
+        verification >> calcul >> validation
+        fins.append(validation)
 
-    fins = [pipeline_source(source) for source in SOURCES]
     export = PythonOperator(
         task_id="exporter_csv_metriques",
         python_callable=exporter_metriques,
     )
-    nettoyage = PythonOperator(
-        task_id="nettoyer_fichiers_temporaires",
-        python_callable=nettoyer_intermediaires,
-    )
-    fins >> export >> nettoyage
+    fins >> export
