@@ -12,10 +12,10 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 DATA_DIR = "/opt/airflow/dags/data"
-OUTPUT_DIR = os.path.join(DATA_DIR, "output", "audit_results", "metrique_doublon")
-SORTIE = os.path.join(OUTPUT_DIR, "metriques_doublons.csv")
+OUTPUT_DIR = os.path.join(DATA_DIR, "output", "audit_results", "doublons")
+SORTIE = os.path.join(OUTPUT_DIR, "audit_doublons.csv")
 TMP_ROOT = os.path.join(OUTPUT_DIR, ".tmp_metrique_doublons")
-SEUIL = 0.85  # Strictement superieur, conformement au rapport.
+SEUIL = 0.85  # Similarite strictement superieure a 0,85.
 
 SOURCES = {
     "consommation": ("S1_Consommation", "S2_Consommation"),
@@ -32,15 +32,14 @@ SCHEMAS = {
 
 
 def dossier_execution(context):
-    """Chemin partage par toutes les taches d'une meme execution Airflow."""
-    run_id = context["run_id"]
-    identifiant = hashlib.sha256(run_id.encode("utf-8")).hexdigest()[:24]
+    identifiant = hashlib.sha256(context["run_id"].encode("utf-8")).hexdigest()[:24]
     return os.path.join(TMP_ROOT, identifiant)
 
 
 @contextmanager
 def session_spark(nom):
-    spark = SparkSession.builder.appName(nom).master("local[*]").getOrCreate()
+    # 2 coeurs par session pour limiter la concurrence dans le worker Docker.
+    spark = SparkSession.builder.appName(nom).master("local[2]").getOrCreate()
     try:
         yield spark
     finally:
@@ -76,18 +75,18 @@ def normaliser_rue(chaine):
 
 
 def charger_sources(categorie, **context):
-    """Etape 1 : charge et rassemble S1/S2 en Parquet temporaire."""
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    base = dossier_execution(context)
+    """Etape 1 : lecture des CSV S1 et S2, en gardant la provenance."""
+    base = os.path.join(dossier_execution(context), categorie)
+    os.makedirs(base, exist_ok=True)
     with session_spark("Doublons_chargement_" + categorie) as spark:
-        gauche, droite = SOURCES[categorie]
+        s1, s2 = SOURCES[categorie]
         spec = SCHEMAS[categorie]
-        df = lire_csv(spark, gauche, spec).unionByName(lire_csv(spark, droite, spec))
-        df.write.mode("overwrite").parquet(os.path.join(base, categorie, "01_sources"))
+        df = lire_csv(spark, s1, spec).unionByName(lire_csv(spark, s2, spec))
+        df.write.mode("overwrite").parquet(os.path.join(base, "01_sources"))
 
 
 def preparer_donnees(categorie, **context):
-    """Etape 2 : normalise et definit les blocs de comparaison."""
+    """Etape 2 : nettoyage pour la comparaison et preparation des blocs."""
     base = os.path.join(dossier_execution(context), categorie)
     with session_spark("Doublons_preparation_" + categorie) as spark:
         df = spark.read.parquet(os.path.join(base, "01_sources"))
@@ -96,80 +95,90 @@ def preparer_donnees(categorie, **context):
             df = df.withColumn("libelle_distinct", normaliser(F.col("Nom_Rue")))
             df = df.withColumn("valeur", normaliser_rue(F.col("Nom_Rue")))
             df = df.filter((F.length("bloc") > 0) & (F.length("libelle_distinct") > 0))
-            # Plusieurs habitants d'une rue n'ajoutent PAS de nouveaux libelles.
-            df = df.select("bloc", "libelle_distinct", "valeur").dropDuplicates(
-                ["bloc", "libelle_distinct"]
+            # Les habitants d'une meme rue ne constituent pas des doublons.
+            # Une variante de libelle n'est comptee qu'une fois PAR TABLE.
+            df = df.select("source", "bloc", "libelle_distinct", "valeur").dropDuplicates(
+                ["source", "bloc", "libelle_distinct"]
             )
         else:
             df = df.withColumn("bloc", normaliser(F.col("Adresse")))
             nom = normaliser(F.col("Nom"))
             prenom = normaliser(F.col("Prenom"))
             df = df.filter((F.length("bloc") > 0) & (F.length(nom) > 0) & (F.length(prenom) > 0))
-            df = df.withColumn("valeur", F.concat_ws(" ", nom, prenom)).select("bloc", "valeur")
-            # On conserve ici les lignes distinctes d'individus : ne pas dedupliquer.
+            df = df.withColumn("valeur", F.concat_ws(" ", nom, prenom)).select("source", "bloc", "valeur")
+            # Plusieurs lignes d'identite sont conservees : on mesure leurs rapprochements.
         df = df.withColumn("ligne_id", F.monotonically_increasing_id())
         df.write.mode("overwrite").parquet(os.path.join(base, "02_preparees"))
 
 
 def comparer_donnees(categorie, **context):
-    """Etape 3 : calcule la similarite des paires du meme bloc."""
+    """Etape 3 : Levenshtein sur les paires candidates d'une MEME table."""
     base = os.path.join(dossier_execution(context), categorie)
     with session_spark("Doublons_comparaison_" + categorie) as spark:
         df = spark.read.parquet(os.path.join(base, "02_preparees"))
         g, d = df.alias("g"), df.alias("d")
         condition = (
-            (F.col("g.bloc") == F.col("d.bloc"))
+            (F.col("g.source") == F.col("d.source"))
+            & (F.col("g.bloc") == F.col("d.bloc"))
             & (F.col("g.ligne_id") < F.col("d.ligne_id"))
         )
         if categorie == "consommation":
-            # Jamais deux libelles identiques : ce sont des occurrences d'une rue.
             condition = condition & (F.col("g.libelle_distinct") != F.col("d.libelle_distinct"))
         paires = g.join(d, condition, "inner")
         a, b = F.col("g.valeur"), F.col("d.valeur")
         longueur = F.greatest(F.length(a), F.length(b))
-        similarite = F.when(longueur > 0, 1.0 - F.levenshtein(a, b) / longueur)
-        # Pas d'export des paires : seulement une donnee intermediaire pour calculer le taux.
-        paires.select((similarite > F.lit(SEUIL)).alias("est_similaire")) \
-            .write.mode("overwrite").parquet(os.path.join(base, "03_comparaisons"))
+        similarite = F.when(longueur > 0, F.lit(1.0) - F.levenshtein(a, b) / longueur)
+        paires.select(
+            F.col("g.source").alias("table_auditee"),
+            (similarite > F.lit(SEUIL)).alias("est_similaire"),
+        ).write.mode("overwrite").parquet(os.path.join(base, "03_comparaisons"))
 
 
 def calculer_metrique(categorie, **context):
-    """Etape 4 : calcule le taux puis enregistre une seule petite ligne JSON temporaire."""
+    """Etape 4 : compter les doublons potentiels et les paires testees PAR table."""
     base = os.path.join(dossier_execution(context), categorie)
     with session_spark("Doublons_mesure_" + categorie) as spark:
         df = spark.read.parquet(os.path.join(base, "03_comparaisons"))
-        compte = df.agg(
-            F.count("*").alias("total"),
-            F.sum(F.when(F.col("est_similaire"), 1).otherwise(0)).alias("similaires"),
-        ).first()
-        total = compte["total"]
-        taux = round(100 * (compte["similaires"] or 0) / total, 2) if total else None
+        comptes = df.groupBy("table_auditee").agg(
+            F.count("*").alias("nb_paires_testees"),
+            F.sum(F.when(F.col("est_similaire"), 1).otherwise(0)).alias("nb_doublons_detectes"),
+        )
+        valeurs = {
+            ligne["table_auditee"]: (
+                int(ligne["nb_doublons_detectes"] or 0),
+                int(ligne["nb_paires_testees"]),
+            )
+            for ligne in comptes.collect()
+        }
 
-    ligne = {
-        "facteur_qualite": "doublons_semantiques",
-        "categorie": categorie,
-        "tables_auditees": ";".join(SOURCES[categorie]),
-        "attributs_audites": "Nom_Rue" if categorie == "consommation" else "Nom;Prenom",
-        "cle_regroupement": "Code_Postal" if categorie == "consommation" else "Adresse",
-        "taux_similarite_pct": taux,
-        "seuil_similarite": SEUIL,
-        "date_mesure": datetime.utcnow().isoformat(timespec="seconds") + "Z",
-    }
+    lignes = []
+    for source in SOURCES[categorie]:
+        doublons, total = valeurs.get(source, (0, 0))
+        lignes.append({
+            "type_mesure": "Variations de Rue" if categorie == "consommation" else "Variations d'Identité",
+            "categorie": categorie,
+            "table_auditee": source,
+            "attributs_audites": "Nom_Rue" if categorie == "consommation" else "Nom;Prenom",
+            "cle_regroupement": "Code_Postal" if categorie == "consommation" else "Adresse",
+            "nb_doublons_detectes": doublons,
+            "nb_paires_testees": total,
+            "seuil_similarite": SEUIL,
+        })
     os.makedirs(base, exist_ok=True)
-    with open(os.path.join(base, "04_metrique.json"), "w", encoding="utf-8") as f:
-        json.dump(ligne, f, ensure_ascii=False)
+    with open(os.path.join(base, "04_metriques.json"), "w", encoding="utf-8") as f:
+        json.dump(lignes, f, ensure_ascii=False)
 
 
 def exporter_metriques(**context):
-    """Etape 5 : un SEUL CSV (deux lignes) pour le futur dashboard."""
+    """Etape 5 : un seul CSV regroupant les 4 tables auditees."""
     base = dossier_execution(context)
     lignes = []
     for categorie in ("consommation", "population"):
-        with open(os.path.join(base, categorie, "04_metrique.json"), encoding="utf-8") as f:
-            lignes.append(json.load(f))
+        with open(os.path.join(base, categorie, "04_metriques.json"), encoding="utf-8") as f:
+            lignes.extend(json.load(f))
     colonnes = [
-        "facteur_qualite", "categorie", "tables_auditees", "attributs_audites",
-        "cle_regroupement", "taux_similarite_pct", "seuil_similarite", "date_mesure",
+        "type_mesure", "categorie", "table_auditee", "attributs_audites",
+        "cle_regroupement", "nb_doublons_detectes", "nb_paires_testees", "seuil_similarite",
     ]
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     temporaire = SORTIE + ".tmp"
@@ -181,7 +190,7 @@ def exporter_metriques(**context):
 
 
 def nettoyer_intermediaires(**context):
-    """Etape 6 : elimine Parquet et JSON apres export reussi."""
+    """Etape 6 : supprime les Parquet et les JSON temporaires."""
     shutil.rmtree(dossier_execution(context), ignore_errors=True)
 
 
@@ -190,9 +199,9 @@ with DAG(
     start_date=datetime(2026, 10, 13),
     schedule_interval=None,
     catchup=False,
-    max_active_runs=1,  # Evite deux executions ecrivant le meme CSV final.
+    max_active_runs=1,
     tags=["datascale", "qualite", "doublons"],
-    description="Mesure des doublons semantiques : pipeline detaille et CSV unique",
+    description="Mesure des variations de rue et d'identite par table source",
 ) as dag:
     def etapes(categorie):
         lecture = PythonOperator(
@@ -211,7 +220,7 @@ with DAG(
             op_kwargs={"categorie": categorie},
         )
         calcul = PythonOperator(
-            task_id=f"calculer_taux_{categorie}",
+            task_id=f"calculer_nombre_{categorie}",
             python_callable=calculer_metrique,
             op_kwargs={"categorie": categorie},
         )

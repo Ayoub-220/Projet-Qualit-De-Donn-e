@@ -79,7 +79,7 @@ def calculer_cp_iris():
     try:
         # On conserve ID_Ville comme dans le code precedent.
         # Verifier que cette colonne contient bien des codes postaux.
-        return [mesurer_cp(lire_source(spark, "S4_IRIS"), "ID_Ville", "S4_IRIS")]
+        return [mesurer_cp(lire_source(spark, "Iris"), "ID_Ville", "Iris")]
     finally:
         spark.stop()
 
@@ -87,10 +87,10 @@ def calculer_cp_iris():
 def calculer_referentiel_csp():
     spark = creer_spark("DQ_Conformite_Referentiel_CSP")
     try:
-        reference = lire_source(spark, "S3_CSP")
+        reference = lire_source(spark, "Csp")
         cles_valides = reference.select(F.col("ID_CSP").alias("_id_csp_ref")).distinct()
         lignes = []
-        for table in ("S1_Population", "S2_Population"):
+        for table in ("Population_Paris", "S2_Population"):
             population = lire_source(spark, table)
             total = population.count()
             # Les CSP sans correspondance, y compris NULL, sont non conformes.
@@ -184,11 +184,11 @@ with DAG(
         )
         verifier_cp_conso >> calcul_cp_conso >> controle_cp_conso
 
-    with TaskGroup(group_id="codes_postaux_iris", tooltip="S4_IRIS : ID_Ville"):
+    with TaskGroup(group_id="codes_postaux_iris", tooltip="Iris : ID_Ville"):
         verifier_iris = PythonOperator(
             task_id="verifier_fichier_et_colonne",
             python_callable=verifier_sources,
-            op_kwargs={"specifications": [("S4_IRIS", ["ID_Ville"])]},
+            op_kwargs={"specifications": [("Iris", ["ID_Ville"])]},
         )
         calcul_iris = PythonOperator(
             task_id="calculer_conformite_cp_iris",
@@ -199,19 +199,19 @@ with DAG(
             python_callable=controler_resultats,
             op_kwargs={
                 "task_calcul": "codes_postaux_iris.calculer_conformite_cp_iris",
-                "tables_attendues": ["S4_IRIS"],
+                "tables_attendues": ["Iris"],
             },
         )
         verifier_iris >> calcul_iris >> controle_iris
 
-    with TaskGroup(group_id="referentiel_csp", tooltip="Paris/Evry Population vs S3_CSP"):
+    with TaskGroup(group_id="referentiel_csp", tooltip="Paris/Evry Population vs Csp"):
         verifier_csp = PythonOperator(
             task_id="verifier_fichiers_et_colonnes",
             python_callable=verifier_sources,
             op_kwargs={"specifications": [
-                ("S1_Population", ["CSP"]),
+                ("Population_Paris", ["CSP"]),
                 ("S2_Population", ["CSP"]),
-                ("S3_CSP", ["ID_CSP"]),
+                ("Csp", ["ID_CSP"]),
             ]},
         )
         calcul_csp = PythonOperator(
@@ -223,7 +223,7 @@ with DAG(
             python_callable=controler_resultats,
             op_kwargs={
                 "task_calcul": "referentiel_csp.calculer_conformite_csp",
-                "tables_attendues": ["S1_Population", "S2_Population"],
+                "tables_attendues": ["Population_Paris", "S2_Population"],
             },
         )
         verifier_csp >> calcul_csp >> controle_csp
