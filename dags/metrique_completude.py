@@ -1,3 +1,12 @@
+"""Mesure de la completude des sources utilisees par les mappings ETL.
+
+Compatible Apache Airflow 2.10.2 / PySpark.
+- Sources CSV brutes : aucune imputation ni suppression.
+- Une seule session Spark par source.
+- Trois taches visibles par source (verifier -> calculer -> valider), puis export.
+- Un CSV final, sans fichiers Parquet/JSON temporaires.
+"""
+
 import csv
 import os
 from contextlib import contextmanager

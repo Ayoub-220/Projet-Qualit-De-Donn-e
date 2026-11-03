@@ -1,7 +1,8 @@
 """ETL DataScale - Airflow 2.10.2 / PySpark.
 
 3 groupes x 3 taches : verifier -> transformer/agregger -> publier.
-Sources brutes conservees, conversions et jointures normalisees.
+Sources brutes conservees ; aucune correction des codes postaux.
+Les normalisations de rues/adresses/CSP servent uniquement de cles de jointure.
 Une adresse sans IRIS unique est exclue du mapping IRIS (pas d'attribution inventee).
 """
 from datetime import datetime
@@ -9,9 +10,7 @@ import csv
 import glob
 import hashlib
 import os
-import re
 import shutil
-import unicodedata
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -117,24 +116,22 @@ def nombre_decimal(texte):
     return propre.cast("double")
 
 
-def code_postal_corrige(texte, ville):
-    """Correction conservative limitee aux erreurs clairement observees dans le jeu.
+def code_postal_valide(texte):
+    """Valide uniquement la forme du code postal, sans le corriger.
 
-    Les modifications incertaines restent non conformes au lieu d'etre forcees.
+    Une valeur invalide reste telle quelle dans la source et n'est pas
+    exploitee pour l'agregation IRIS. Son anomalie releve de l'audit
+    de conformite et d'une future etape de nettoyage.
     """
-    brut = F.upper(F.trim(F.coalesce(texte.cast("string"), F.lit(""))))
-    # 750050 -> 75005 ; 910000/9100000 -> 91000 ; 91000A -> 91000.
-    return (F.when(brut.rlike(r"^\d{5}$"), brut)
-             .when((F.lit(ville) == "PARIS") & (brut == "750050"), F.lit("75005"))
-             .when((F.lit(ville) == "EVRY") & brut.isin("910000", "9100000", "91000A"), F.lit("91000"))
-             .otherwise(F.lit(None).cast("string")))
+    brut = F.trim(texte.cast("string"))
+    return F.coalesce(brut.rlike(r"^[0-9]{5}$"), F.lit(False))
 
 
 def conso_preparee(spark, cle, ville):
     df = lire(spark, cle)
     return (df.withColumn("rue_cle", rue_normalisee(F.col("Nom_Rue")))
             .withColumn("numero_cle", sans_accents(F.col("N")))
-            .withColumn("cp_corrige", code_postal_corrige(F.col("Code_Postal"), ville))
+            .withColumn("cp_valide", code_postal_valide(F.col("Code_Postal")))
             .withColumn("conso_num", nombre_decimal(F.col("NB_KW_Jour")))
             .withColumn("ville_cle", F.lit(ville)))
 
@@ -161,7 +158,10 @@ def transformer_iris(spark, branche):
     iris_uniques = (iris.join(cardinalite, ["ville_cle", "rue_cle"])
                     .filter(F.col("nb_iris") == 1)
                     .select("ville_cle", "rue_cle", "iris_cle"))
-    admissibles = conso.filter(F.col("cp_corrige").isNotNull() & F.col("conso_num").isNotNull())
+    # Les codes postaux invalides NE sont PAS repares pour faire passer la jointure.
+    # Ils restent non mappes. Les valeurs non numeriques ou absentes ne sont
+    # pas agregees non plus (mesurees par les DAG de qualite).
+    admissibles = conso.filter(F.col("cp_valide") & F.col("conso_num").isNotNull())
     jointure = admissibles.join(iris_uniques, ["ville_cle", "rue_cle"], "inner")
     return (jointure.groupBy("iris_cle")
             .agg(F.round(F.avg("conso_num") * 365, 2).alias("Conso_moyenne_annuelle"))
