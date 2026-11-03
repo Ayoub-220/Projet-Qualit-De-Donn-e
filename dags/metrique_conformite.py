@@ -7,9 +7,8 @@ import os
 import pandas as pd
 
 def sauvegarder_resultat_dq(mesure, dimension, table, nb_lignes, nb_erreurs):
-    dossier = '/opt/airflow/dags/data/output/dq_results/conformite'
+    dossier = '/opt/airflow/dags/data/output/audit_results/conformite'
     os.makedirs(dossier, exist_ok=True)
-    
     audit = f'{dossier}/audit_conformite.csv'
     
     taux = round(((nb_lignes - nb_erreurs) / nb_lignes) * 100, 2) if nb_lignes > 0 else 0.0
@@ -19,7 +18,6 @@ def sauvegarder_resultat_dq(mesure, dimension, table, nb_lignes, nb_erreurs):
         columns=['Nom_Mesure', 'Dimension', 'Table_Testee', 'Nb_Lignes_Total', 'Nb_Erreurs', 'Taux_Conformite_Pct']
     )
     
-    # consolidation dans le fichier unique si jamais parceque on execute en meme temps plusieurs mesures de conformite
     if os.path.exists(audit):
         df_exist = pd.read_csv(audit)
         df_final = pd.concat([df_exist, df]).drop_duplicates(subset=['Nom_Mesure', 'Table_Testee'], keep='last')
@@ -29,21 +27,25 @@ def sauvegarder_resultat_dq(mesure, dimension, table, nb_lignes, nb_erreurs):
     df_final.to_csv(audit, index=False)
     print(f"[Conformité] {mesure} sur {table} : {taux}% (Erreurs: {nb_erreurs}/{nb_lignes})")
 
-# 1 : Métrique de Conformité du Code Postal (sur S1 et S2 Consommation)
+# 1 : Conformité des Codes Postaux (Consommations + S4_IRIS)
 def mesurer_conformite_code_postal():
     spark = SparkSession.builder.appName("DQ_Conformite_CP").master("local[*]").getOrCreate()
+    sources = [
+        ("S1_Consommation", '/opt/airflow/dags/data/S1_Consommation.csv', 'Code_Postal'),
+        ("S2_Consommation", '/opt/airflow/dags/data/S2_Consommation.csv', 'Code_Postal'),
+        ("S4_IRIS", '/opt/airflow/dags/data/S4_IRIS.csv', 'ID_Ville')
+    ]
     
-    for source, path in [("S1_Consommation", '/opt/airflow/dags/data/S1_Consommation.csv'), 
-                         ("S2_Consommation", '/opt/airflow/dags/data/S2_Consommation.csv')]:
+    for source, path, col_name in sources:
         df = spark.read.csv(path, header=True, inferSchema=True)
-        df = df.withColumn("CP_Str", col("Code_Postal").cast("string"))
+        df = df.withColumn("CP_Str", col(col_name).cast("string"))
         nb = df.count()
         err = df.filter(~col("CP_Str").rlike(r'^\d{5}$')).count()
         sauvegarder_resultat_dq('Conformite_Code_Postal', 'Conformité', source, nb, err)
         
     spark.stop()
 
-# 2 : Métrique de Conformité du Référentiel CSP (sur S1 et S2 Population)
+# 2 : Conformité du Référentiel CSP (Populations)
 def mesurer_conformite_referentiel_csp():
     spark = SparkSession.builder.appName("DQ_Conformite_CSP").master("local[*]").getOrCreate()
     df_csp = spark.read.csv('/opt/airflow/dags/data/S3_CSP.csv', header=True, inferSchema=True)
@@ -52,10 +54,10 @@ def mesurer_conformite_referentiel_csp():
                          ("S2_Population", '/opt/airflow/dags/data/S2_Population.csv')]:
         df_pop = spark.read.csv(path, header=True, inferSchema=True)
         nb = df_pop.count()
+        # left anti join pour trouver les populations dont le CSP n'existe pas dans le référentiel
         orphelins = df_pop.join(df_csp, df_pop.CSP == df_csp.ID_CSP, "left_anti")
         err = orphelins.count()
         sauvegarder_resultat_dq('Conformite_Referentiel_CSP', 'Conformité', source, nb, err)
-        
     spark.stop()
 
 with DAG(
@@ -75,5 +77,4 @@ with DAG(
         task_id='mesurer_conformite_referentiel_csp',
         python_callable=mesurer_conformite_referentiel_csp
     )
-    
     [t_code_postal, t_referentiel_csp]
