@@ -17,7 +17,8 @@ def sauvegarder_resultat_dq(mesure, dimension, table, nb_lignes, nb_erreurs):
         [[mesure, dimension, table, nb_lignes, nb_erreurs, taux]],
         columns=['Nom_Mesure', 'Dimension', 'Table_Testee', 'Nb_Lignes_Total', 'Nb_Erreurs', 'Taux_Conformite_Pct']
     )
-    
+
+    # consolidation dans le fichier unique parce que l'on veut un audit global pour toutes les mesures de conformité
     if os.path.exists(audit):
         df_exist = pd.read_csv(audit)
         df_final = pd.concat([df_exist, df]).drop_duplicates(subset=['Nom_Mesure', 'Table_Testee'], keep='last')

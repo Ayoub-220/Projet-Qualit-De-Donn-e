@@ -19,7 +19,7 @@ def sauvegarder_resultat_dq(mesure, dimension, table, nb_lignes, nb_erreurs):
         columns=['Nom_Mesure', 'Dimension', 'Table_Testee', 'Nb_Lignes_Total', 'Nb_Erreurs', 'Taux_Conformite_Pct']
     )
     
-    # Consolidation dans le fichier unique
+    # consolidation dans le fichier unique parce que l'on veut un audit global pour toutes les mesures d'hétérogénéité
     if os.path.exists(fichier_global):
         df_exist = pd.read_csv(fichier_global)
         df_final = pd.concat([df_exist, df]).drop_duplicates(subset=['Nom_Mesure', 'Table_Testee'], keep='last')
@@ -39,7 +39,7 @@ def mesurer_heterogeneite_echelle():
         df = df.withColumn("KW_Num", col("NB_KW_Jour").cast("double"))
         nb = df.count()
         
-        # Détection des erreurs : valeurs négatives ou valeurs anormalement hautes (en Wh au lieu de kWh)
+        # détection des erreurs : valeurs négatives ou valeurs anormalement hautes (en Wh au lieu de kWh)
         erreurs_echelle = df.filter((col("KW_Num") < 0) | (col("KW_Num") > 100000))
         err = erreurs_echelle.count()
         
@@ -47,7 +47,6 @@ def mesurer_heterogeneite_echelle():
         
     spark.stop()
 
-# Configuration du DAG Airflow
 with DAG(
     dag_id='mesure_heterogeneite',
     start_date=datetime(2026, 1, 1),
