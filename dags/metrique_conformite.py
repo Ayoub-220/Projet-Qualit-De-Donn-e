@@ -68,7 +68,7 @@ def calculer_cp_consommation():
     try:
         return [
             mesurer_cp(lire_source(spark, table), "Code_Postal", table)
-            for table in ("S1_Consommation", "S2_Consommation")
+            for table in ("Consommation_Paris", "Consommation_Evry")
         ]
     finally:
         spark.stop()
@@ -161,13 +161,13 @@ with DAG(
     tags=["datascale", "conformite"],
     description="Mesure de conformite : sources, calculs, controles et export",
 ) as dag:
-    with TaskGroup(group_id="codes_postaux_consommation", tooltip="S1/S2 Consommation : Code_Postal"):
+    with TaskGroup(group_id="codes_postaux_consommation", tooltip="Paris/Evry Consommation : Code_Postal"):
         verifier_cp_conso = PythonOperator(
             task_id="verifier_fichiers_et_colonnes",
             python_callable=verifier_sources,
             op_kwargs={"specifications": [
-                ("S1_Consommation", ["Code_Postal"]),
-                ("S2_Consommation", ["Code_Postal"]),
+                ("Consommation_Paris", ["Code_Postal"]),
+                ("Consommation_Evry", ["Code_Postal"]),
             ]},
         )
         calcul_cp_conso = PythonOperator(
@@ -179,7 +179,7 @@ with DAG(
             python_callable=controler_resultats,
             op_kwargs={
                 "task_calcul": "codes_postaux_consommation.calculer_conformite_cp_consommation",
-                "tables_attendues": ["S1_Consommation", "S2_Consommation"],
+                "tables_attendues": ["Consommation_Paris", "Consommation_Evry"],
             },
         )
         verifier_cp_conso >> calcul_cp_conso >> controle_cp_conso
@@ -204,7 +204,7 @@ with DAG(
         )
         verifier_iris >> calcul_iris >> controle_iris
 
-    with TaskGroup(group_id="referentiel_csp", tooltip="S1/S2 Population vs S3_CSP"):
+    with TaskGroup(group_id="referentiel_csp", tooltip="Paris/Evry Population vs S3_CSP"):
         verifier_csp = PythonOperator(
             task_id="verifier_fichiers_et_colonnes",
             python_callable=verifier_sources,

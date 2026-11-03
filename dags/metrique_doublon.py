@@ -1,6 +1,3 @@
-"""Airflow 2.10.2 + PySpark : mesure des doublons semantiques.
-"""
-
 import csv
 import hashlib
 import json
@@ -15,7 +12,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 DATA_DIR = "/opt/airflow/dags/data"
-OUTPUT_DIR = os.path.join(DATA_DIR, "output", "metrique_doublon")
+OUTPUT_DIR = os.path.join(DATA_DIR, "output", "audit_results", "metrique_doublon")
 SORTIE = os.path.join(OUTPUT_DIR, "metriques_doublons.csv")
 TMP_ROOT = os.path.join(OUTPUT_DIR, ".tmp_metrique_doublons")
 SEUIL = 0.85  # Strictement superieur, conformement au rapport.

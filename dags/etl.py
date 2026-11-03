@@ -13,11 +13,11 @@ DATA_DIR = "/opt/airflow/dags/data"
 OUTPUT_DIR = os.path.join(DATA_DIR, "output")
 
 SOURCES = {
-    "paris": ["S1_Consommation.csv", "S4_IRIS.csv"],
-    "evry": ["S2_Consommation.csv", "S4_IRIS.csv"],
+    "paris": ["Consommation_Paris.csv", "Iris.csv"],
+    "evry": ["Consommation_Evry.csv", "Iris.csv"],
     "csp": [
-        "S1_Population.csv", "S1_Consommation.csv",
-        "S2_Population.csv", "S2_Consommation.csv", "S3_CSP.csv",
+        "Population_Paris.csv", "Consommation_Paris.csv",
+        "Population_Evry.csv", "Consommation_Evry.csv", "Csp.csv",
     ],
 }
 
@@ -43,11 +43,11 @@ def transformer_iris(spark, branche):
         os.path.join(DATA_DIR, nom_source), header=True, inferSchema=True
     )
     iris = spark.read.csv(
-        os.path.join(DATA_DIR, "S4_IRIS.csv"), header=True, inferSchema=True
+        os.path.join(DATA_DIR, "Iris.csv"), header=True, inferSchema=True
     )
 
     # Condition identique a celle du DAG initial : Code_Postal = ID_Ville.
-    # A verifier sur les valeurs de S4_IRIS, sans la modifier lors du refactoring.
+    # A verifier sur les valeurs de Iris, sans la modifier lors du refactoring.
     jointure = consommation.join(
         iris,
         (lower(trim(consommation.Nom_Rue)) == lower(trim(iris.ID_Rue)))
@@ -62,18 +62,18 @@ def transformer_iris(spark, branche):
 
 
 def transformer_csp(spark):
-    s1_pop = spark.read.csv(os.path.join(DATA_DIR, "S1_Population.csv"), header=True, inferSchema=True)
-    s1_conso = spark.read.csv(os.path.join(DATA_DIR, "S1_Consommation.csv"), header=True, inferSchema=True)
-    s2_pop = spark.read.csv(os.path.join(DATA_DIR, "S2_Population.csv"), header=True, inferSchema=True)
-    s2_conso = spark.read.csv(os.path.join(DATA_DIR, "S2_Consommation.csv"), header=True, inferSchema=True)
-    csp = spark.read.csv(os.path.join(DATA_DIR, "S3_CSP.csv"), header=True, inferSchema=True)
+    pop_paris = spark.read.csv(os.path.join(DATA_DIR, "Population_Paris.csv"), header=True, inferSchema=True)
+    conso_paris = spark.read.csv(os.path.join(DATA_DIR, "Consommation_Paris.csv"), header=True, inferSchema=True)
+    pop_evry = spark.read.csv(os.path.join(DATA_DIR, "Population_Evry.csv"), header=True, inferSchema=True)
+    conso_evry = spark.read.csv(os.path.join(DATA_DIR, "Consommation_Evry.csv"), header=True, inferSchema=True)
+    csp = spark.read.csv(os.path.join(DATA_DIR, "Csp.csv"), header=True, inferSchema=True)
 
-    s1 = s1_pop.join(
-        s1_conso, lower(trim(s1_pop.Adresse)) == lower(trim(s1_conso.ID_Adr)), "inner"
-    ).select(s1_pop.CSP.alias("CSP"), s1_conso.NB_KW_Jour.alias("NB_KW_Jour"))
-    s2 = s2_pop.join(
-        s2_conso, lower(trim(s2_pop.Adresse)) == lower(trim(s2_conso.ID_Adr)), "inner"
-    ).select(s2_pop.CSP.alias("CSP"), s2_conso.NB_KW_Jour.alias("NB_KW_Jour"))
+    s1 = pop_paris.join(
+        conso_paris, lower(trim(pop_paris.Adresse)) == lower(trim(conso_paris.ID_Adr)), "inner"
+    ).select(pop_paris.CSP.alias("CSP"), conso_paris.NB_KW_Jour.alias("NB_KW_Jour"))
+    s2 = pop_evry.join(
+        conso_evry, lower(trim(pop_evry.Adresse)) == lower(trim(conso_evry.ID_Adr)), "inner"
+    ).select(pop_evry.CSP.alias("CSP"), conso_evry.NB_KW_Jour.alias("NB_KW_Jour"))
 
     toutes = s1.unionByName(s2)
     jointure = toutes.join(

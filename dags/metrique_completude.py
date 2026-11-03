@@ -1,6 +1,3 @@
-"""DAG Airflow 2.10.2 / PySpark : mesure de la completude .
-"""
-
 import csv
 import hashlib
 import json
@@ -15,14 +12,14 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 DATA_DIR = "/opt/airflow/dags/data"
-OUTPUT_DIR = os.path.join(DATA_DIR, "output", "metrique_completude")
-SORTIE = os.path.join(OUTPUT_DIR, "metriques_completude.csv")
+OUTPUT_DIR = os.path.join(DATA_DIR, "output", "audit_results", "metrique_completude")
+SORTIE = os.path.join(OUTPUT_DIR, "audit_completude.csv")
 TMP_ROOT = os.path.join(OUTPUT_DIR, ".tmp_metrique_completude")
 
-# Perimetre exact de la section 3.3 du rapport (S1/S2 Conso et Population).
+# Perimetre exact de la section 3.3 du rapport (Paris/Evry Conso et Population).
 SOURCES = {
-    "S1_Consommation": ("NB_KW_Jour", "ID_Adr"),
-    "S2_Consommation": ("NB_KW_Jour", "ID_Adr"),
+    "Consommation_Paris": ("NB_KW_Jour", "ID_Adr"),
+    "Consommation_Evry": ("NB_KW_Jour", "ID_Adr"),
     "S1_Population": ("Adresse",),
     "S2_Population": ("Adresse",),
 }
@@ -145,7 +142,6 @@ def nettoyer_intermediaires(**context):
     """Etape 5 : supprimer uniquement les fichiers temporaires de cette execution."""
     shutil.rmtree(dossier_execution(context), ignore_errors=True)
 
-
 with DAG(
     dag_id="metrique_completude",
     start_date=datetime(2026, 10, 13),
@@ -153,7 +149,7 @@ with DAG(
     catchup=False,
     max_active_runs=1,
     tags=["datascale", "qualite", "completude"],
-    description="Mesure par table et attribut des taux de completude des sources S1/S2",
+    description="Mesure par table et attribut des taux de completude des sources Paris/Evry",
 ) as dag:
 
     def pipeline_source(source):
@@ -174,8 +170,8 @@ with DAG(
         )
         chargement >> preparation >> calcul
         return calcul
-
     fins = [pipeline_source(source) for source in SOURCES]
+    
     export = PythonOperator(
         task_id="exporter_csv_metriques",
         python_callable=exporter_metriques,

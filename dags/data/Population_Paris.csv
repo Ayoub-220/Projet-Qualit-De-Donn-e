@@ -1,0 +1,13 @@
+﻿ID_Personne;Nom;Prénom;Adresse;CSP
+1;Martin;Claire;Paris,20 rue Arthur Groussier;Cadre
+2;Dupont;Julien;Paris, 17 rue Belhomme;Employé
+3;Lefèvre;Amélie;Paris, 91 rue Broca;Professions intermédiaires
+4;Moreau;Thomas;Paris, 20 rue Arthur Groussier;Ouvrier
+5;Bernard;Sophie;Paris, 76 rue Blanche;cadres et professions intellectuelles supérieures
+6;Dubois;Karim;Paris, 18 rue Arthur Groussier ;Commerçant / Artisan
+7;Petit;Lucas;Paris, 8 rue Belhomme;Etudiant
+8;Roux;Nathalie;Paris, 10 rue Belgrand ;Professions intermédiaires
+9;Faure;Antoine;Paris, 76 rue Blanche ;Cadre
+10;Garnier;Léa;Paris, 79 rue Broca ;Employé
+11;Perrin;Isabelle;Paris, 92 rue Broca;Retraitée
+12;Mercier;Romain;Paris, 25 rue Broca;Agriculteur

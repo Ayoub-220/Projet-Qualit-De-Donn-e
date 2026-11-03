@@ -14,8 +14,8 @@ OUTPUT_DIR = os.path.join(DATA_DIR, "output", "audit_results", "heterogeneite")
 OUTPUT_CSV = os.path.join(OUTPUT_DIR, "audit_heterogeneite.csv")
 
 SOURCES = {
-    "S1_Consommation": "S1_Consommation.csv",
-    "S2_Consommation": "S2_Consommation.csv",
+    "Consommation_Paris": "Consommation_Paris.csv",
+    "Consommation_Evry": "Consommation_Evry.csv",
 }
 COLONNES_CSV = [
     "Nom_Mesure",
@@ -120,8 +120,8 @@ with DAG(
 ) as dag:
     validations = []
     for table, groupe in [
-        ("S1_Consommation", "consommation_s1"),
-        ("S2_Consommation", "consommation_s2"),
+        ("Consommation_Paris", "consommation_paris"),
+        ("Consommation_Evry", "consommation_evry"),
     ]:
         with TaskGroup(group_id=groupe) as tg:
             verifier = PythonOperator(
@@ -150,8 +150,8 @@ with DAG(
         python_callable=exporter_csv,
         op_kwargs={
             "task_ids_validation": [
-                "consommation_s1.valider_et_calculer_taux",
-                "consommation_s2.valider_et_calculer_taux",
+                "consommation_paris.valider_et_calculer_taux",
+                "consommation_evry.valider_et_calculer_taux",
             ],
         },
     )
