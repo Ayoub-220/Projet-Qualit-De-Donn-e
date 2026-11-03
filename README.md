@@ -4,22 +4,7 @@
 
 Ce projet alimente trois tables cibles à partir de six sources, mesure la qualité de ces données et définit, pour chaque mesure, le processus d'amélioration que nous allons appliquer. La cohérence n'y figure pas, car elle sera traitée sur un autre jeu de données.
 
-> **État actuel :** les constats de l'audit ont été calculés sur `Données.ods`, en tenant compte de son format (séparateur `;`, décimales avec virgule). Les DAG Airflow doivent encore être adaptés à ce format et au SQL de ce document, et les corrections décrites ici restent à mettre en œuvre.
-
-## Sources
-
-| Table | Contenu | Lignes |
-|---|---|---|
-| `Consommation_Paris` | Consommation par adresse à Paris | 13 |
-| `Consommation_Evry` | Consommation par adresse à Évry | 12 |
-| `Population_Paris` | Personnes, adresse et CSP à Paris | 12 |
-| `Population_Evry` | Personnes, adresse et CSP à Évry | 12 |
-| `CSP` | Référentiel des catégories socioprofessionnelles | 6 |
-| `IRIS` | Rattachement des rues aux IRIS | 13 |
-
-## Tables cibles et mapping SQL
-
-Cette partie est une première formalisation du mapping en SQL : **les données ne sont pas encore préparées**. Les requêtes partent des tables sources telles quelles et supposent que `NB_KW_Jour` et `Salair_Moyen` sont numériques. La fonction `UNACCENT` nécessite l'extension PostgreSQL du même nom.
+Le SQL ci-dessous est une première formalisation du mapping : **les données ne sont pas encore préparées**. Les requêtes partent des tables sources telles quelles et supposent que `NB_KW_Jour` et `Salair_Moyen` sont numériques. La fonction `UNACCENT` nécessite l'extension PostgreSQL du même nom.
 
 ### Création des tables cibles
 
