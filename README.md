@@ -6,7 +6,7 @@ Ce projet alimente trois tables cibles à partir de six sources, mesure la quali
 
 Le SQL ci-dessous est une première formalisation du mapping : **les données ne sont pas encore préparées**. Les requêtes partent des tables sources telles quelles et supposent que `NB_KW_Jour` et `Salair_Moyen` sont numériques. La fonction `UNACCENT` nécessite l'extension PostgreSQL du même nom.
 
-Le DAG `etl.py` va plus loin : il normalise les libellés, traduit les CSP de Paris en codes et écarte les lignes sans rattachement fiable (rue Broca, codes postaux invalides, consommations manquantes). Ses tables n'ont donc pas toutes le même contenu que celles produites par ces requêtes.
+Le DAG `etl.py` applique ce mapping avec Spark SQL, sans aucune correction de qualité : il écrit les trois tables dans `dags/data/output/` et obtient les mêmes résultats que ces requêtes, arrondis à deux décimales. Il se limite à la préparation technique : conversion de la virgule décimale et normalisation du texte pour les jointures. Les anomalies restent donc visibles dans les tables cibles. Les corrections se font à part, sur les données : il suffit ensuite de relancer le DAG, sans changer les requêtes.
 
 ## Création des tables cibles
 
@@ -124,9 +124,9 @@ Certains liens ne peuvent pas être de vraies clés étrangères SQL, car les va
 
 | Facteur | Étape | Attributs ciblés |
 |---|---|---|
-| Conformité | Source et cible | `Code_Postal` (Paris, Évry), `CSP` (Paris, Évry, par rapport au référentiel) |
-| Hétérogénéité des échelles | Source et transformation | `NB_KW_Jour` (Paris, Évry) |
-| Complétude | Source et transformation | `NB_KW_Jour`, `Adresse` et `ID_Adr` (Paris, Évry), `Salair_Moyen` (`CSP`) |
+| Conformité | Source | `Code_Postal` (Paris, Évry), `CSP` (Paris, Évry, par rapport au référentiel) |
+| Hétérogénéité des échelles | Source | `NB_KW_Jour` (Paris, Évry) |
+| Complétude | Source | `NB_KW_Jour`, `Adresse` et `ID_Adr` (Paris, Évry), `Salair_Moyen` (`CSP`) |
 | Doublons sémantiques | Source | `Nom_Rue`, `Nom` et `Prénom` (Paris, Évry) |
 
 ### Résultats
@@ -155,7 +155,7 @@ Chaque mesure suit le même cycle :
 3. **Corriger** dans une copie de travail, sans jamais modifier les fichiers sources.
 4. **Tracer** chaque correction : table, ligne, valeur d'origine, nouvelle valeur et règle appliquée.
 5. **Prévenir** le retour de l'erreur par un contrôle en entrée du pipeline.
-6. **Mesurer à nouveau** et comparer le résultat à l'objectif.
+6. **Mesurer à nouveau** : relancer l'ETL et les DAG de mesure sur les données corrigées, puis comparer le résultat à l'objectif.
 
 Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun doute. Dans les autres cas, elle est signalée pour validation par le responsable des données.
 
@@ -208,6 +208,8 @@ La médiane de `NB_KW_Jour` est de 14 000,85 à Paris contre 8,81 à Évry, soit
 
 La méthode de l'IQR signale une valeur atypique par ville : 5 000,15 à Paris et 548,49 à Évry. Elle compare chaque ville à elle-même et ne peut donc pas révéler l'écart entre les deux.
 
+Le même DAG mesure aussi la granularité de `IRIS` : 1 rue sur 12 (Broca) est rattachée à deux IRIS, ce qui concerne 4 compteurs sur 13 à Paris.
+
 **Comment nous allons améliorer**
 
 1. **Détection :** comparer les médianes des deux villes et signaler tout rapport supérieur à 1 000.
@@ -245,7 +247,7 @@ La méthode de l'IQR signale une valeur atypique par ville : 5 000,15 à Paris e
 
 **Définition :** identifie des enregistrements qui représentent la même entité réelle malgré des différences d'écriture (fautes de frappe, abréviations, variations de format).
 
-**Métrique :** nombre de paires dont la similarité de Levenshtein, après normalisation, dépasse strictement 0,85, rapporté au nombre de paires testées.
+**Métrique :** nombre de paires dont la similarité de Levenshtein (fonction `levenshtein` de Spark SQL), calculée sur les valeurs brutes, dépasse strictement 0,85, rapporté au nombre de paires testées.
 
 **Attributs concernés**
 
@@ -255,15 +257,37 @@ La méthode de l'IQR signale une valeur atypique par ville : 5 000,15 à Paris e
 **Constat**
 
 - Aucune paire ne dépasse le seuil de similarité de 0,85 à l'intérieur d'une même table.
-- Le contrôle actuel limite les comparaisons : les identités ne sont comparées qu'à adresse identique (3 paires testées), et une variation de rue n'est retenue que si les deux noms sont identiques une fois les abréviations et les espaces retirés. Le résultat reste le même en comparant toutes les paires de chaque table.
+- Le contrôle compare les valeurs telles quelles, sans normalisation : une différence de casse ou d'accent compte donc comme une erreur de frappe. Les rues ne sont comparées qu'à code postal identique (28 paires à Évry, aucune à Paris) et les identités qu'à adresse strictement identique (1 paire à Évry, aucune à Paris, où les adresses sont écrites différemment). Le résultat reste le même en comparant toutes les paires de chaque table.
 - Six identités figurent à la fois dans `Population_Paris` et `Population_Evry` : Bernard Sophie, Dubois Karim, Dupont Julien, Lefèvre Amélie, Martin Claire et Moreau Thomas. Leurs CSP concordent une fois les libellés de Paris convertis. Cinq ont des adresses différentes, et celle de Martin Claire est absente à Évry : la comparaison est donc impossible pour cette personne.
 
 Il peut s'agir de doublons, d'homonymes ou de personnes ayant déménagé. Le contrôle actuel ne compare pas les deux villes et ne peut donc pas les repérer.
 
 **Comment nous allons améliorer**
 
-1. **Comparaison :** étendre le contrôle aux paires entre les deux tables, en gardant la normalisation actuelle (casse, accents, abréviations de voies) et le seuil de 0,85.
+1. **Comparaison :** normaliser les valeurs (casse, accents, abréviations de voies), puis étendre le contrôle aux paires entre les deux tables, sans exiger une adresse identique, en gardant le seuil de 0,85.
 2. **Qualification :** classer chaque paire à l'aide des attributs disponibles : similarité du nom, CSP et adresse.
 3. **Décision :** faire valider chaque paire. Un même nom ne suffit pas à fusionner deux personnes.
 4. **Élimination :** pour un doublon confirmé, garder un seul enregistrement de référence et conserver le lien vers les identifiants d'origine.
 5. **Prévention :** rejouer ce contrôle à chaque nouveau chargement, et ajouter un identifiant de personne commun aux deux sources si c'est possible.
+
+## Tableau de bord
+
+Le tableau de bord affiche les métriques produites par les DAG, sans les recalculer. Chaque DAG écrit son CSV dans `dags/data/output/audit_results/` (dossier ignoré par Git) :
+
+| DAG | Fichier produit |
+|---|---|
+| `mesure_conformite` | `conformite/audit_conformite.csv` |
+| `metrique_completude` | `completude/audit_completude.csv` |
+| `mesure_heterogeneite_granularite` | `heterogeneite/audit_heterogeneite.csv` |
+| `metrique_doublons_semantiques` | `doublons/audit_doublons.csv` |
+
+Si un fichier n'y figure pas, le tableau de bord cherche une copie à la racine du projet. Il indique en bas de page les fichiers lus et leur date, et signale ceux qui manquent.
+
+Pour le lancer depuis la racine du projet :
+
+```bash
+pip install -r dashboard/requirements.txt
+python -m streamlit run dashboard/app.py
+```
+
+La page s'ouvre sur `http://localhost:8501`. Après une nouvelle exécution des DAG, il suffit de la recharger.

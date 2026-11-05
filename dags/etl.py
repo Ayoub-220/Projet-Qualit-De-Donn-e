@@ -1,9 +1,11 @@
-"""ETL DataScale - Airflow 2.10.2 / PySpark.
+"""ETL DataScale - Airflow 2.10.2 / Spark SQL.
 
-3 groupes x 3 taches : verifier -> transformer/agregger -> publier.
-Sources brutes conservees ; aucune correction des codes postaux.
-Les normalisations de rues/adresses/CSP servent uniquement de cles de jointure.
-Une adresse sans IRIS unique est exclue du mapping IRIS (pas d'attribution inventee).
+3 groupes x 3 taches : verifier -> transformer/agreger -> publier.
+Le mapping est ecrit en SQL et applique tel quel : aucune correction de qualite ici,
+les anomalies des sources restent donc visibles dans les tables cibles.
+Seule la preparation technique est faite : decimales converties et cles de jointure
+normalisees. Les corrections se font a part, sur les sources : il suffit ensuite de
+relancer ce DAG, sans changer les requetes.
 """
 from datetime import datetime
 import csv
@@ -16,7 +18,6 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
 from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
 
 DATA_DIR = "/opt/airflow/dags/data"
 OUTPUT_DIR = os.path.join(DATA_DIR, "output")
@@ -48,6 +49,90 @@ CIBLES = {
     "evry": "Consommation_IRIS_Evry.csv",
     "csp": "Consommation_CSP.csv",
 }
+VUES = {
+    "conso_paris": "Consommation_Paris",
+    "conso_evry": "Consommation_Evry",
+    "pop_paris": "Population_Paris",
+    "pop_evry": "Population_Evry",
+    "iris": "IRIS",
+    "csp": "CSP",
+}
+
+
+def cle_texte(colonne):
+    """Expression SQL ignorant la casse, les accents et les espaces (pour les jointures)."""
+    return (f"REPLACE(TRANSLATE(LOWER({colonne}), "
+            "'àâäáçéèêëîïíôöóùûüúÿ', 'aaaaceeeeiiiooouuuuy'), ' ', '')")
+
+
+def conso_preparee(vue):
+    return f"""
+        SELECT ID_Adr, N, Nom_Rue, Code_Postal,
+               CAST(REPLACE(NB_KW_Jour, ',', '.') AS DOUBLE) AS NB_KW_Jour,
+               {cle_texte('Nom_Rue')} AS Rue_Cle
+        FROM {vue}_Brut"""
+
+
+def population_preparee(vue):
+    return f"""
+        SELECT ID_Personne, Adresse, CSP, {cle_texte('Adresse')} AS Adresse_Cle
+        FROM {vue}_Brut"""
+
+
+# Preparation technique uniquement : une vue SQL par source, sans ecarter aucune ligne.
+PREPARATIONS = {
+    "conso_paris": conso_preparee("Consommation_Paris"),
+    "conso_evry": conso_preparee("Consommation_Evry"),
+    "pop_paris": population_preparee("Population_Paris"),
+    "pop_evry": population_preparee("Population_Evry"),
+    "iris": "SELECT ID_Rue, ID_Ville, ID_IRIS FROM IRIS_Brut",
+    "csp": """
+        SELECT ID_CSP, CAST(REPLACE(Salair_Moyen, ',', '.') AS DOUBLE) AS Salair_Moyen
+        FROM CSP_Brut""",
+}
+
+# Memes jointures que le SQL du README.
+REQUETES = {
+    "paris": """
+        SELECT
+            i.ID_IRIS,
+            CAST(AVG(c.NB_KW_Jour) * 365 AS DECIMAL(12, 2)) AS Conso_moyenne_annuelle
+        FROM Consommation_Paris c
+        JOIN IRIS i
+            ON LOWER(TRIM(c.Nom_Rue)) = LOWER(TRIM(i.ID_Rue))
+           AND i.ID_Ville = 'Paris'
+        GROUP BY i.ID_IRIS""",
+    "evry": """
+        SELECT
+            i.ID_IRIS,
+            CAST(AVG(c.NB_KW_Jour) * 365 AS DECIMAL(12, 2)) AS Conso_moyenne_annuelle
+        FROM Consommation_Evry c
+        JOIN IRIS i
+            ON LOWER(TRIM(c.Nom_Rue)) LIKE ('% ' || LOWER(TRIM(i.ID_Rue)))
+           AND i.ID_Ville = 'Evry-Courcouronnes'
+        GROUP BY i.ID_IRIS""",
+    "csp": """
+        WITH Population_Consommation AS (
+            -- Paris : Nom_Rue ne contient pas le type de voie
+            SELECT p.CSP, c.NB_KW_Jour
+            FROM Population_Paris p
+            JOIN Consommation_Paris c
+              ON p.Adresse_Cle = 'paris,' || c.N || 'rue' || c.Rue_Cle
+            UNION ALL
+            -- Evry : Nom_Rue contient deja le type de voie
+            SELECT p.CSP, c.NB_KW_Jour
+            FROM Population_Evry p
+            JOIN Consommation_Evry c
+              ON p.Adresse_Cle = 'evry-courcouronnes,91000,' || c.N || c.Rue_Cle
+        )
+        SELECT
+            csp.ID_CSP,
+            CAST(AVG(pc.NB_KW_Jour) * 365 AS DECIMAL(12, 2)) AS Conso_moyenne_annuelle,
+            CAST(csp.Salair_Moyen AS DECIMAL(12, 2)) AS Salaire_Moyen
+        FROM Population_Consommation pc
+        JOIN CSP csp ON LOWER(TRIM(pc.CSP)) = LOWER(TRIM(csp.ID_CSP))
+        GROUP BY csp.ID_CSP, csp.Salair_Moyen""",
+}
 
 
 def chemin_source(cle):
@@ -67,7 +152,7 @@ def verifier_sources(branche):
         chemin = chemin_source(cle)
         with open(chemin, "r", encoding="utf-8-sig", newline="") as f:
             entete = next(csv.reader(f, delimiter=";"), [])
-        entete = [c.strip().lstrip("\ufeff") for c in entete]
+        entete = [c.strip().lstrip("﻿") for c in entete]
         # Autoriser l'orthographe corrigee de Salaire_Moyen.
         attentes = ["Salaire_Moyen" if c == "Salair_Moyen" and "Salaire_Moyen" in entete else c
                     for c in COLONNES[cle]]
@@ -87,145 +172,24 @@ def lire(spark, cle):
           .csv(chemin_source(cle)))
     # Enlever un eventuel BOM et les espaces dans les en-tetes.
     for ancien in df.columns:
-        nouveau = ancien.strip().lstrip("\ufeff")
+        nouveau = ancien.strip().lstrip("﻿")
         if ancien != nouveau:
             df = df.withColumnRenamed(ancien, nouveau)
-    if cle == "csp" and "Salair_Moyen" in df.columns:
-        df = df.withColumnRenamed("Salair_Moyen", "Salaire_Moyen")
+    if cle == "csp" and "Salaire_Moyen" in df.columns:
+        df = df.withColumnRenamed("Salaire_Moyen", "Salair_Moyen")
     return df
 
 
-def sans_accents(texte):
-    """Normalisation Spark sans UDF Python, pour rester rapide."""
-    x = F.upper(F.trim(F.coalesce(texte.cast("string"), F.lit(""))))
-    x = F.translate(x, "ÀÂÄÁÇÉÈÊËÎÏÍÔÖÓÙÛÜÚŸ", "AAAACEEEEIIIOOOUUUUY")
-    x = F.regexp_replace(x, r"[^A-Z0-9]+", " ")
-    return F.trim(F.regexp_replace(x, r"\s+", " "))
+def creer_vues(spark, branche):
+    """Expose chaque source de la branche comme une table SQL."""
+    for cle in SOURCES[branche]:
+        lire(spark, cle).createOrReplaceTempView(f"{VUES[cle]}_Brut")
+        spark.sql(f"CREATE OR REPLACE TEMP VIEW {VUES[cle]} AS {PREPARATIONS[cle]}")
 
 
-def rue_normalisee(texte):
-    return F.regexp_replace(
-        sans_accents(texte),
-        r"^(RUE|R|BOULEVARD|BD|AVENUE|AV|ALLEE|SQUARE|PLACE|CHEMIN|IMPASSE)\s+", ""
-    )
-
-
-def nombre_decimal(texte):
-    """NB_KW_Jour, ex. '19403,56164' -> 19403.56164."""
-    propre = F.regexp_replace(F.trim(texte.cast("string")), ",", ".")
-    return propre.cast("double")
-
-
-def code_postal_valide(texte):
-    """Valide uniquement la forme du code postal, sans le corriger.
-
-    Une valeur invalide reste telle quelle dans la source et n'est pas
-    exploitee pour l'agregation IRIS. Son anomalie releve de l'audit
-    de conformite et d'une future etape de nettoyage.
-    """
-    brut = F.trim(texte.cast("string"))
-    return F.coalesce(brut.rlike(r"^[0-9]{5}$"), F.lit(False))
-
-
-def conso_preparee(spark, cle, ville):
-    df = lire(spark, cle)
-    return (df.withColumn("rue_cle", rue_normalisee(F.col("Nom_Rue")))
-            .withColumn("numero_cle", sans_accents(F.col("N")))
-            .withColumn("cp_valide", code_postal_valide(F.col("Code_Postal")))
-            .withColumn("conso_num", nombre_decimal(F.col("NB_KW_Jour")))
-            .withColumn("ville_cle", F.lit(ville)))
-
-
-def iris_prepare(spark):
-    return (lire(spark, "iris")
-            .withColumn("rue_cle", rue_normalisee(F.col("ID_Rue")))
-            .withColumn("ville_cle", F.when(sans_accents(F.col("ID_Ville")) == "PARIS", F.lit("PARIS"))
-                        .when(sans_accents(F.col("ID_Ville")).startswith("EVRY"), F.lit("EVRY"))
-                        .otherwise(F.lit("AUTRE")))
-            .withColumn("iris_cle", F.trim(F.col("ID_IRIS"))))
-
-
-def transformer_iris(spark, branche):
-    ville = "PARIS" if branche == "paris" else "EVRY"
-    cle = "conso_paris" if branche == "paris" else "conso_evry"
-    conso = conso_preparee(spark, cle, ville)
-    iris = iris_prepare(spark)
-    # Des lignes IRIS repetant la meme association ne doivent pas dupliquer la conso.
-    iris = iris.select("ville_cle", "rue_cle", "iris_cle").dropDuplicates()
-    # Rue BROCA = deux IRIS => attribution inconnue avec les colonnes presentes.
-    cardinalite = iris.groupBy("ville_cle", "rue_cle").agg(
-        F.countDistinct("iris_cle").alias("nb_iris"))
-    iris_uniques = (iris.join(cardinalite, ["ville_cle", "rue_cle"])
-                    .filter(F.col("nb_iris") == 1)
-                    .select("ville_cle", "rue_cle", "iris_cle"))
-    # Les codes postaux invalides NE sont PAS repares pour faire passer la jointure.
-    # Ils restent non mappes. Les valeurs non numeriques ou absentes ne sont
-    # pas agregees non plus (mesurees par les DAG de qualite).
-    admissibles = conso.filter(F.col("cp_valide") & F.col("conso_num").isNotNull())
-    jointure = admissibles.join(iris_uniques, ["ville_cle", "rue_cle"], "inner")
-    return (jointure.groupBy("iris_cle")
-            .agg(F.round(F.avg("conso_num") * 365, 2).alias("Conso_moyenne_annuelle"))
-            .select(F.col("iris_cle").alias("ID_IRIS"), "Conso_moyenne_annuelle"))
-
-
-def population_preparee(spark, cle, ville):
-    """Extrait le numero/suffixe/rue d'une adresse de personne.
-
-    Ex. 'Evry-Courcouronnes, 91000, 2bis rue Voltaire' => 2BIS + VOLTAIRE.
-    """
-    df = lire(spark, cle)
-    brut = sans_accents(F.col("Adresse"))
-    # Une fois normalise : PARIS 20 RUE ARTHUR GROUSSIER ou
-    # EVRY COURCOURONNES 91000 19 BOULEVARD AGUADO.
-    suite = F.regexp_replace(brut, r"^(PARIS|EVRY COURCOURONNES)\s+", "")
-    suite = F.regexp_replace(suite, r"^\d{5}\s+", "")
-    numero = F.regexp_extract(suite, r"^(\d+)\s*(BIS|TER)?\s+", 1)
-    suffixe = F.regexp_extract(suite, r"^\d+\s*(BIS|TER)\s+", 1)
-    voie = F.regexp_replace(suite, r"^\d+\s*(BIS|TER)?\s+", "")
-    return (df.withColumn("numero_cle", F.concat(numero, suffixe))
-            .withColumn("rue_cle", rue_normalisee(voie))
-            .withColumn("ville_cle", F.lit(ville))
-            .filter((F.length("numero_cle") > 0) & (F.length("rue_cle") > 0)))
-
-
-def transformer_csp(spark):
-    parties = []
-    for ville, pop_cle, conso_cle in (
-        ("PARIS", "pop_paris", "conso_paris"),
-        ("EVRY", "pop_evry", "conso_evry"),
-    ):
-        pop = population_preparee(spark, pop_cle, ville).alias("p")
-        conso = conso_preparee(spark, conso_cle, ville).alias("c")
-        # Ne pas joindre un 2bis au 2, ni confondre deux rues distinctes.
-        pairs = (pop.join(conso,
-                    (F.col("p.ville_cle") == F.col("c.ville_cle")) &
-                    (F.col("p.numero_cle") == F.col("c.numero_cle")) &
-                    (F.col("p.rue_cle") == F.col("c.rue_cle")), "inner")
-                 .select(F.col("p.CSP").alias("CSP_brut"),
-                         F.col("c.conso_num").alias("conso_num")))
-        parties.append(pairs)
-    toutes = parties[0].unionByName(parties[1]).filter(F.col("conso_num").isNotNull())
-    canon = sans_accents(F.col("CSP_brut"))
-    # Table de correspondance pour les libelles effectivement presents dans le jeu.
-    code = (F.when(canon.rlike(r"^[1-6]$"), canon)
-            .when(canon.isin("CADRE", "CADRES ET PROFESSIONS INTELLECTUELLES SUPERIEURES"), "3")
-            .when(canon == "PROFESSIONS INTERMEDIAIRES", "4")
-            .when(canon.isin("EMPLOYE", "EMPLOYES", "EMPLOYEES"), "5")
-            .when(canon.isin("OUVRIER", "OUVRIERS"), "6")
-            .when(canon.isin("COMMERCANT ARTISAN", "ARTISAN COMMERCANT"), "2")
-            .when(canon == "AGRICULTEUR", "1")
-            .otherwise(F.lit(None).cast("string")))
-    toutes = toutes.withColumn("code_csp", code).filter(F.col("code_csp").isNotNull())
-    ref = (lire(spark, "csp")
-           .select(F.trim(F.col("ID_CSP")).alias("code_csp"),
-                   F.regexp_replace(F.col("Salaire_Moyen"), ",", ".")
-                   .cast("double").alias("Salaire_Moyen"))
-           .dropDuplicates(["code_csp"]))
-    jointure = toutes.join(ref, "code_csp", "inner")
-    return (jointure.groupBy("code_csp", "Salaire_Moyen")
-            .agg(F.round(F.avg("conso_num") * 365, 2).alias("Conso_moyenne_annuelle"))
-            .select(F.col("code_csp").alias("ID_CSP"),
-                    "Conso_moyenne_annuelle", "Salaire_Moyen"))
+def transformer(spark, branche):
+    creer_vues(spark, branche)
+    return spark.sql(REQUETES[branche])
 
 
 def dossier_temp(branche, run_id):
@@ -242,7 +206,7 @@ def transformer_et_ecrire(branche, **context):
              .config("spark.sql.shuffle.partitions", "4")
              .getOrCreate())
     try:
-        resultat = transformer_csp(spark) if branche == "csp" else transformer_iris(spark, branche)
+        resultat = transformer(spark, branche)
         resultat.coalesce(1).write.mode("overwrite").option("header", True).csv(temp)
         print(f"Traitement {branche} termine; lignes produites : {resultat.count()}")
     finally:

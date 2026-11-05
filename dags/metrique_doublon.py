@@ -1,3 +1,8 @@
+"""Doublons semantiques mesures sur les valeurs brutes des sources.
+
+Aucune normalisation ni correction : les textes sont compares tels quels.
+La distance est calculee par la fonction levenshtein de Spark SQL.
+"""
 import csv
 import os
 from contextlib import contextmanager
@@ -14,7 +19,7 @@ OUTPUT_DIR = os.path.join(DATA_DIR, "output", "audit_results", "doublons")
 SORTIE = os.path.join(OUTPUT_DIR, "audit_doublons.csv")
 SEUIL = 0.85  # Similarite STRICTEMENT superieure a 0,85.
 
-# Meme convention de fichiers que l'ETL corrige. On accepte aussi les noms S1/S2.
+# Meme convention de fichiers que l'ETL. On accepte aussi les noms S1/S2.
 SOURCES = {
     "Consommation_Paris": ("Consommation_Paris.csv", "S1_Consommation.csv"),
     "Consommation_Evry": ("Consommation_Evry.csv", "S2_Consommation.csv"),
@@ -33,6 +38,30 @@ COLONNES_EXPORT = [
     "seuil_similarite",
 ]
 
+# Une rue compte une seule fois par code postal : ses logements ne sont pas des doublons.
+VALEURS_RUES = """
+    SELECT DISTINCT Code_Postal AS bloc, Nom_Rue AS valeur
+    FROM Source
+    WHERE Code_Postal IS NOT NULL AND Nom_Rue IS NOT NULL"""
+VALEURS_IDENTITES = """
+    SELECT Adresse AS bloc, CONCAT_WS(' ', Nom, Prenom) AS valeur
+    FROM Source
+    WHERE Adresse IS NOT NULL AND Nom IS NOT NULL AND Prenom IS NOT NULL"""
+# Chaque paire de valeurs d'un meme bloc n'est comparee qu'une fois.
+REQUETE_PAIRES = """
+    WITH Valeurs AS (
+        SELECT bloc, valeur, ROW_NUMBER() OVER (ORDER BY bloc, valeur) AS ligne_id
+        FROM ({valeurs})
+    )
+    SELECT
+        COUNT(*) AS nb_paires_testees,
+        COALESCE(SUM(CASE
+            WHEN 1.0 - LEVENSHTEIN(g.valeur, d.valeur)
+                       / GREATEST(LENGTH(g.valeur), LENGTH(d.valeur)) > {seuil}
+            THEN 1 ELSE 0 END), 0) AS nb_doublons_detectes
+    FROM Valeurs g
+    JOIN Valeurs d ON g.bloc = d.bloc AND g.ligne_id < d.ligne_id"""
+
 
 def chemin_source(source):
     for fichier in SOURCES[source]:
@@ -46,7 +75,7 @@ def chemin_source(source):
 
 def schema_canonique(colonnes):
     """Tolere Prenom/Prénom et un BOM UTF-8 dans les entetes."""
-    mapping = {nom.lstrip("\ufeff").strip(): nom for nom in colonnes}
+    mapping = {nom.lstrip("﻿").strip(): nom for nom in colonnes}
     resultat = {}
     for canonique in ("Nom", "Prenom", "Adresse", "Nom_Rue", "Code_Postal"):
         alternatives = ("Prenom", "Prénom") if canonique == "Prenom" else (canonique,)
@@ -102,133 +131,23 @@ def lire_source(spark, source, information):
     return donnees.select(*(F.col(aliases[nom]).alias(nom) for nom in SCHEMAS[source]))
 
 
-def normaliser(chaine):
-    """Normalisation identique a celle utilisee par le nouvel ETL."""
-    valeur = F.upper(F.trim(F.coalesce(chaine.cast("string"), F.lit(""))))
-    valeur = F.translate(
-        valeur, "ÀÂÄÁÇÉÈÊËÎÏÍÔÖÓÙÛÜÚŸ", "AAAACEEEEIIIOOOUUUUY"
-    )
-    valeur = F.regexp_replace(valeur, r"[^A-Z0-9]+", " ")
-    return F.trim(F.regexp_replace(valeur, r"\s+", " "))
-
-
-def rue_standardisee(chaine):
-    """Developpe les abreviations mais CONSERVE le type de voie.
-
-    R. DE LA PAIX -> RUE DE LA PAIX ; AV. VICTOR HUGO -> AVENUE VICTOR HUGO.
-    Conserver RUE/AVENUE evite de confondre deux voies distinctes du meme nom.
-    """
-    x = normaliser(chaine)
-    x = F.regexp_replace(x, r"^R\s+", "RUE ")
-    x = F.regexp_replace(x, r"^AV\s+", "AVENUE ")
-    x = F.regexp_replace(x, r"^BD\s+", "BOULEVARD ")
-    return F.regexp_replace(x, r"^ALL\s+", "ALLEE ")
-
-
-def code_postal_comparable(texte, source):
-    """Meme traitement conservateur des anomalies identifiees dans l'ETL."""
-    cp = F.upper(F.trim(F.coalesce(texte.cast("string"), F.lit(""))))
-    ville_paris = source == "Consommation_Paris"
-    if ville_paris:
-        return F.when(cp == "750050", "75005").otherwise(cp)
-    return F.when(cp.isin("910000", "9100000", "91000A"), "91000").otherwise(cp)
-
-
-def adresse_canonique(adresse):
-    """Construit une cle d'adresse numero + suffixe + voie, comme l'ETL.
-
-    La ville est implicite dans la table source. 2BIS n'est jamais confondu avec 2.
-    """
-    valeur = normaliser(adresse)
-    valeur = F.regexp_replace(valeur, r"^(PARIS|EVRY COURCOURONNES)\s+", "")
-    valeur = F.regexp_replace(valeur, r"^\d{5}\s+", "")
-    numero = F.regexp_extract(valeur, r"^(\d+)\s*(BIS|TER)?\s+", 1)
-    suffixe = F.regexp_extract(valeur, r"^\d+\s*(BIS|TER)\s+", 1)
-    voie = F.regexp_replace(valeur, r"^\d+\s*(BIS|TER)?\s+", "")
-    # La normalisation des types est identique au nettoyage ETL, sauf que
-    # l'on conserve le type pour eviter les faux rapprochements.
-    return F.when(
-        (F.length(numero) > 0) & (F.length(F.trim(voie)) > 0),
-        F.concat_ws("|", F.concat(numero, suffixe), rue_standardisee(voie))
-    )
-
-
-def preparer_rues(df, source):
-    """Chaque libelle de rue ne compte qu'une fois par code postal et par table."""
-    prepare = (df.withColumn("bloc", code_postal_comparable(F.col("Code_Postal"), source))
-               .withColumn("libelle_original", normaliser(F.col("Nom_Rue")))
-               .withColumn("libelle_standard", rue_standardisee(F.col("Nom_Rue"))))
-    prepare = prepare.filter(
-        (F.length("bloc") > 0) & (F.length("libelle_original") > 0)
-    )
-    # Les 100 logements de CHEMIN GENEVIEVE HUBERT ne constituent pas 100 rues.
-    return (prepare.select("bloc", "libelle_original", "libelle_standard")
-            .dropDuplicates(["bloc", "libelle_original"]))
-
-
-def preparer_identites(df):
-    nom = normaliser(F.col("Nom"))
-    prenom = normaliser(F.col("Prenom"))
-    prepare = (df.withColumn("bloc", adresse_canonique(F.col("Adresse")))
-               .withColumn("valeur", F.concat_ws(" ", nom, prenom)))
-    return prepare.filter(
-        F.col("bloc").isNotNull()
-        & (F.length(nom) > 0)
-        & (F.length(prenom) > 0)
-    ).select("bloc", "valeur")
-
-
 def calculer_similarites(source, **context):
-    """Etape 2 : un seul traitement Spark pour charger, normaliser et comparer."""
+    """Etape 2 : un seul traitement Spark pour charger et comparer."""
     info = context["ti"].xcom_pull(task_ids=f"groupe_{source.lower()}.verifier_source")
     if not info:
         raise ValueError(f"Informations de chargement manquantes pour {source}")
     categorie = "consommation" if source.startswith("Consommation") else "population"
+    valeurs = VALEURS_RUES if categorie == "consommation" else VALEURS_IDENTITES
     with session_spark("DQ_Doublons_" + source) as spark:
-        df = lire_source(spark, source, info)
-        if categorie == "consommation":
-            df = preparer_rues(df, source)
-        else:
-            df = preparer_identites(df)
-        # ID technique interne pour ne former chaque paire qu'une fois.
-        df = df.withColumn("ligne_id", F.monotonically_increasing_id())
-        gauche, droite = df.alias("g"), df.alias("d")
-        condition = (
-            (F.col("g.bloc") == F.col("d.bloc"))
-            & (F.col("g.ligne_id") < F.col("d.ligne_id"))
-        )
-        if categorie == "consommation":
-            # Ne pas comparer une rue exactement avec elle-meme.
-            condition = condition & (
-                F.col("g.libelle_original") != F.col("d.libelle_original")
-            )
-            a, b = F.col("g.libelle_standard"), F.col("d.libelle_standard")
-            # Une meme rue peut avoir plusieurs habitants. Deux noms de rues
-            # seulement semblables (ex. BROCA / BROCAT) ne prouvent rien.
-            # On exige donc la meme cle apres correction d'abreviations et
-            # regroupement des espaces, pour limiter les faux positifs.
-            meme_voie = (
-                F.regexp_replace(a, " ", "")
-                == F.regexp_replace(b, " ", "")
-            )
-        else:
-            a, b = F.col("g.valeur"), F.col("d.valeur")
-            meme_voie = F.lit(True)
-        paires = gauche.join(droite, condition, "inner")
-        taille = F.greatest(F.length(a), F.length(b))
-        similarite = F.when(taille > 0, F.lit(1.0) - F.levenshtein(a, b) / taille)
-        proches = (meme_voie & (similarite > F.lit(SEUIL)))
-        mesure = paires.agg(
-            F.count(F.lit(1)).alias("nb_paires_testees"),
-            F.sum(F.when(proches, 1).otherwise(0)).alias("nb_doublons_detectes"),
-        ).first()
+        lire_source(spark, source, info).createOrReplaceTempView("Source")
+        mesure = spark.sql(REQUETE_PAIRES.format(valeurs=valeurs, seuil=SEUIL)).first()
     return {
         "type_mesure": "Variations de Rue" if categorie == "consommation" else "Variations d'Identité",
         "categorie": categorie,
         "table_auditee": source,
         "attributs_audites": "Nom_Rue" if categorie == "consommation" else "Nom;Prenom",
         "cle_regroupement": "Code_Postal" if categorie == "consommation" else "Adresse",
-        "nb_doublons_detectes": int(mesure["nb_doublons_detectes"] or 0),
+        "nb_doublons_detectes": int(mesure["nb_doublons_detectes"]),
         "nb_paires_testees": int(mesure["nb_paires_testees"]),
         "seuil_similarite": SEUIL,
     }
