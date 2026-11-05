@@ -6,7 +6,9 @@ Ce projet alimente trois tables cibles à partir de six sources, mesure la quali
 
 Le SQL ci-dessous est une première formalisation du mapping : **les données ne sont pas encore préparées**. Les requêtes partent des tables sources telles quelles et supposent que `NB_KW_Jour` et `Salair_Moyen` sont numériques. La fonction `UNACCENT` nécessite l'extension PostgreSQL du même nom.
 
-### Création des tables cibles
+Le DAG `etl.py` va plus loin : il normalise les libellés, traduit les CSP de Paris en codes et écarte les lignes sans rattachement fiable (rue Broca, codes postaux invalides, consommations manquantes). Ses tables n'ont donc pas toutes le même contenu que celles produites par ces requêtes.
+
+## Création des tables cibles
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS unaccent;
@@ -31,9 +33,9 @@ CREATE TABLE Consommation_CSP (
 );
 ```
 
-### Alimentation de `Consommation_IRIS_Paris`
+## Alimentation de `Consommation_IRIS_Paris`
 
-À Paris, `Nom_Rue` et `ID_Rue` contiennent le même libellé. Le rapprochement se fait sur la rue et sur la ville, car `ID_Ville` contient un nom de ville et non un code postal.
+À Paris, `Nom_Rue` et `ID_Rue` contiennent le même libellé. Le rapprochement se fait sur la rue et sur la ville, car `ID_Ville` contient un nom de ville et non un code postal. La rue Broca étant rattachée à deux IRIS, ses compteurs comptent à la fois dans `Croulebarbe 7` et dans `Val de Grace 1`.
 
 ```sql
 INSERT INTO Consommation_IRIS_Paris (ID_IRIS, Conso_moyenne_annuelle)
@@ -47,7 +49,7 @@ JOIN IRIS i
 GROUP BY i.ID_IRIS;
 ```
 
-### Alimentation de `Consommation_IRIS_Evry`
+## Alimentation de `Consommation_IRIS_Evry`
 
 À Évry, `Nom_Rue` contient le type de voie (`BOULEVARD AGUADO`) et `ID_Rue` seulement le nom (`aguado`). Le rapprochement compare donc la fin du libellé.
 
@@ -63,9 +65,9 @@ JOIN IRIS i
 GROUP BY i.ID_IRIS;
 ```
 
-### Alimentation de `Consommation_CSP`
+## Alimentation de `Consommation_CSP`
 
-`Adresse` étant un texte libre, elle est comparée à l'adresse reconstruite à partir de `N` et `Nom_Rue`, sans tenir compte de la casse, des accents et des espaces.
+`Adresse` étant un texte libre, elle est comparée à l'adresse reconstruite à partir de `N` et `Nom_Rue`, sans tenir compte de la casse, des accents et des espaces. Les CSP de Paris étant des libellés et non des codes, la jointure finale avec `CSP` ne retient à ce stade que les personnes d'Évry.
 
 ```sql
 INSERT INTO Consommation_CSP (ID_CSP, Conso_moyenne_annuelle, Salaire_Moyen)
@@ -95,7 +97,7 @@ GROUP BY csp.ID_CSP, csp.Salair_Moyen;
 
 ## Contraintes d'intégrité référentielle
 
-Certains liens ne peuvent pas être de vraies clés étrangères SQL, car les valeurs ne sont pas identiques d'une table à l'autre. Ils sont garantis par les jointures ci-dessus.
+Certains liens ne peuvent pas être de vraies clés étrangères SQL, car les valeurs ne sont pas identiques d'une table à l'autre. Ils sont réalisés par les jointures ci-dessus, qui écartent les lignes sans correspondance. C'est le cas des 4 lignes de `Consommation_Evry` situées rue Voltaire et rue Pierre et Marie Curie, absentes de `IRIS`.
 
 **Tables sources et référentiels**
 
@@ -123,8 +125,8 @@ Certains liens ne peuvent pas être de vraies clés étrangères SQL, car les va
 | Facteur | Étape | Attributs ciblés |
 |---|---|---|
 | Conformité | Source et cible | `Code_Postal` (Paris, Évry), `CSP` (Paris, Évry, par rapport au référentiel) |
-| Hétérogénéité des échelles | Source et transformation | `NB_KW_Jour` (Wh ou kWh) |
-| Complétude | Source et transformation | `NB_KW_Jour`, `Adresse` et `ID_Adr` (Paris, Évry) |
+| Hétérogénéité des échelles | Source et transformation | `NB_KW_Jour` (Paris, Évry) |
+| Complétude | Source et transformation | `NB_KW_Jour`, `Adresse` et `ID_Adr` (Paris, Évry), `Salair_Moyen` (`CSP`) |
 | Doublons sémantiques | Source | `Nom_Rue`, `Nom` et `Prénom` (Paris, Évry) |
 
 ### Résultats
@@ -133,12 +135,14 @@ Les objectifs sont des propositions.
 
 | Mesure | Paris | Évry | Objectif |
 |---|---|---|---|
-| Conformité de `Code_Postal` | 92,31 % | 75 % | 100 % |
+| Conformité de `Code_Postal` | 92,31 % | 75 % | 100 %, après validation de `91000a` |
 | Conformité de `CSP` | 0 % | 100 % | 100 % des libellés reconnus |
-| Valeurs de `NB_KW_Jour` au-dessus de 1 000 | 13 sur 13 | 0 sur 12 | 0 après conversion |
+| Médiane de `NB_KW_Jour` | 14 000,85 | 8,81 | Rapport (1 590 aujourd'hui) sous le seuil de 1 000 après conversion |
+| Valeurs atypiques de `NB_KW_Jour` (IQR) | 1 sur 13 | 1 sur 7 | Chaque cas examiné |
 | Complétude de `NB_KW_Jour` | 100 % | 58,33 % | Valeurs manquantes demandées à la source |
 | Complétude de `Adresse` | 100 % | 66,67 % | Valeurs manquantes demandées à la source |
 | Complétude de `ID_Adr` | 100 % | 100 % | 100 % |
+| Complétude de `Salair_Moyen` (table `CSP`, commune aux deux villes) | 83,33 % | 83,33 % | Valeur manquante demandée à la source |
 | Doublons dans une même table | 0 | 0 | 0 |
 | Identités présentes dans les deux villes | 6 | 6 | Chaque cas examiné |
 
@@ -155,7 +159,7 @@ Chaque mesure suit le même cycle :
 
 Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun doute. Dans les autres cas, elle est signalée pour validation par le responsable des données.
 
-## 1. Conformité à un format, une codification
+### 1. Conformité à un format, une codification
 
 **Définition :** vérifie que les données respectent un format prédéfini ou appartiennent à un ensemble de valeurs autorisées.
 
@@ -175,7 +179,7 @@ Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun dout
 
 **Comment nous allons améliorer**
 
-1. **Codes postaux :** remplacer la valeur invalide par le code déjà utilisé pour la même rue et la même ville. Par exemple, `750050` (rue Broca) devient `75005`. Sans code de référence fiable, la ligne est signalée.
+1. **Codes postaux :** remplacer la valeur invalide par le code déjà utilisé pour la même rue et la même ville. Par exemple, `750050` (rue Broca) devient `75005`. Sans code de référence fiable, la ligne est signalée : c'est le cas de `91000a` (rue Pablo Picasso), seule ligne de sa rue.
 2. **CSP de Paris :** créer une table de correspondance entre libellés et codes, à faire valider :
 
    | Libellé dans `Population_Paris` | `ID_CSP` |
@@ -187,44 +191,47 @@ Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun dout
    | Employé | 5 |
    | Ouvrier | 6 |
 
-3. **Libellés sans code :** `Etudiant` et `Retraitée` n'ont aucune catégorie dans le référentiel. Ils restent signalés tant qu'il n'est pas décidé de les exclure ou d'étendre le référentiel. Le taux atteindrait alors 83,33 % à Paris.
+3. **Libellés sans code :** `Etudiant` et `Retraitée` n'ont aucune catégorie dans le référentiel. Avec la table de correspondance, le taux de Paris passe donc à 83,33 %. Ces libellés restent signalés tant qu'il n'est pas décidé de les exclure ou d'étendre le référentiel, ce qui est nécessaire pour atteindre 100 %.
 4. **Prévention :** refuser à l'entrée tout code postal qui ne compte pas 5 chiffres et toute CSP absente du référentiel.
 
-## 2. Hétérogénéité des échelles
+### 2. Hétérogénéité des échelles
 
 **Définition :** détecte les ruptures d'homogénéité dans les unités de mesure, qui faussent les calculs.
 
-**Métrique :** taux d'anomalies d'échelle, soit le pourcentage de valeurs négatives ou supérieures à 1 000.
+**Métrique :** rapport entre les médianes de Paris et d'Évry, avec une alerte au-dessus de 1 000, complété par le nombre de valeurs atypiques dans chaque ville selon la méthode de l'IQR (en dehors de `Q1 - 1,5 × IQR` et `Q3 + 1,5 × IQR`).
 
 **Attribut concerné :** `NB_KW_Jour` dans `Consommation_Paris` et `Consommation_Evry`.
 
 **Constat**
 
-L'écart d'échelle entre les deux villes est d'un **facteur 1 000**, ce qui correspond à une confusion entre Wh et kWh. La médiane est de 14 000,85 à Paris contre 8,81 à Évry. Le seuil de 100 000 utilisé jusqu'ici est trop élevé pour détecter cet écart. Avec un seuil de 1 000, les 13 valeurs de Paris sont signalées, et aucune des 12 lignes d'Évry.
+La médiane de `NB_KW_Jour` est de 14 000,85 à Paris contre 8,81 à Évry, soit un **rapport de 1 590**, au-dessus du seuil de 1 000. Cet écart indique une probable confusion entre Wh et kWh, dont le facteur de conversion est de 1 000. L'unité n'étant pas indiquée dans les fichiers, cela reste à confirmer.
+
+La méthode de l'IQR signale une valeur atypique par ville : 5 000,15 à Paris et 548,49 à Évry. Elle compare chaque ville à elle-même et ne peut donc pas révéler l'écart entre les deux.
 
 **Comment nous allons améliorer**
 
-1. **Détection :** signaler toute valeur de `NB_KW_Jour` négative ou supérieure à 1 000.
+1. **Détection :** comparer les médianes des deux villes et signaler tout rapport supérieur à 1 000.
 2. **Harmonisation :** diviser les valeurs de Paris par 1 000 dans une colonne dédiée, en conservant la valeur d'origine.
-3. **Prévention :** ajouter l'unité attendue à la description de chaque source et bloquer le chargement si des valeurs dépassent le seuil.
-4. **Contrôle :** vérifier qu'aucune valeur ne dépasse plus le seuil, puis recalculer les moyennes des tables cibles. `Consommation_CSP` ne doit jamais mélanger deux unités.
+3. **Prévention :** ajouter l'unité attendue à la description de chaque source et bloquer le chargement si le rapport dépasse le seuil.
+4. **Contrôle :** vérifier que le rapport repasse sous le seuil (environ 1,6 attendu), puis recalculer les moyennes des tables cibles. `Consommation_CSP` ne doit jamais mélanger deux unités.
 
-## 3. Complétude des données
+### 3. Complétude des données
 
 **Définition :** évalue la proportion de données manquantes par rapport au volume nécessaire aux calculs cibles.
 
-**Métrique :** taux de valeurs manquantes par attribut clé, soit le nombre de valeurs nulles, vides, `nan` ou `null`, divisé par le nombre total de lignes.
+**Métrique :** taux de complétude par attribut clé, soit la part des lignes dont la valeur est renseignée. Une valeur nulle, vide, `nan`, `null` ou `none` compte comme manquante.
 
 **Attributs concernés**
 
 - `NB_KW_Jour` dans `Consommation_Paris` et `Consommation_Evry` : sans cette mesure, la ligne ne peut pas contribuer à `Conso_moyenne_annuelle`.
 - `Adresse` dans `Population_Paris` et `Population_Evry`, et `ID_Adr` dans `Consommation_Paris` et `Consommation_Evry` : ils identifient l'adresse de la personne et du compteur. Sans adresse, une personne ne peut pas être rattachée à une consommation pour `Consommation_CSP`.
+- `Salair_Moyen` dans `CSP` : il alimente `Salaire_Moyen` dans `Consommation_CSP`.
 
 **Constat**
 
 - `NB_KW_Jour` manque sur 5 lignes sur 12 dans `Consommation_Evry`.
 - `Adresse` manque sur 4 lignes sur 12 dans `Population_Evry`.
-- Le salaire moyen de la CSP 6 (`Ouvriers / ouvrières`) est absent, alors qu'il alimente `Consommation_CSP`.
+- `Salair_Moyen` manque sur 1 ligne sur 6 dans `CSP` : la CSP 6 (`Ouvriers / ouvrières`).
 
 **Comment nous allons améliorer**
 
@@ -234,11 +241,11 @@ L'écart d'échelle entre les deux villes est d'un **facteur 1 000**, ce qui cor
 4. **Transparence :** indiquer avec chaque moyenne le nombre de valeurs utilisées et le nombre de valeurs exclues.
 5. **Prévention :** déclencher une alerte si le taux de complétude d'un attribut clé passe sous un seuil à fixer.
 
-## 4. Détection et élimination des doublons sémantiques
+### 4. Détection et élimination des doublons sémantiques
 
 **Définition :** identifie des enregistrements qui représentent la même entité réelle malgré des différences d'écriture (fautes de frappe, abréviations, variations de format).
 
-**Métrique :** part des paires testées dont la similarité de Levenshtein, après normalisation, dépasse strictement 0,85.
+**Métrique :** nombre de paires dont la similarité de Levenshtein, après normalisation, dépasse strictement 0,85, rapporté au nombre de paires testées.
 
 **Attributs concernés**
 
@@ -248,7 +255,8 @@ L'écart d'échelle entre les deux villes est d'un **facteur 1 000**, ce qui cor
 **Constat**
 
 - Aucune paire ne dépasse le seuil de similarité de 0,85 à l'intérieur d'une même table.
-- Six identités figurent à la fois dans `Population_Paris` et `Population_Evry` : Bernard Sophie, Dubois Karim, Dupont Julien, Lefèvre Amélie, Martin Claire et Moreau Thomas. Leurs CSP concordent une fois les libellés de Paris convertis, mais leurs adresses diffèrent.
+- Le contrôle actuel limite les comparaisons : les identités ne sont comparées qu'à adresse identique (3 paires testées), et une variation de rue n'est retenue que si les deux noms sont identiques une fois les abréviations et les espaces retirés. Le résultat reste le même en comparant toutes les paires de chaque table.
+- Six identités figurent à la fois dans `Population_Paris` et `Population_Evry` : Bernard Sophie, Dubois Karim, Dupont Julien, Lefèvre Amélie, Martin Claire et Moreau Thomas. Leurs CSP concordent une fois les libellés de Paris convertis. Cinq ont des adresses différentes, et celle de Martin Claire est absente à Évry : la comparaison est donc impossible pour cette personne.
 
 Il peut s'agir de doublons, d'homonymes ou de personnes ayant déménagé. Le contrôle actuel ne compare pas les deux villes et ne peut donc pas les repérer.
 
