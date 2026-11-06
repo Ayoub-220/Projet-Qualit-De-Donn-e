@@ -161,6 +161,8 @@ Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun dout
 
 ### 1. Conformité à un format, une codification
 
+![DAG Conformité](assets/conformite.png)
+
 **Définition :** vérifie que les données respectent un format prédéfini ou appartiennent à un ensemble de valeurs autorisées.
 
 **Métrique :** taux de conformité, soit le pourcentage de valeurs respectant le format attendu ou présentes dans la table de référence.
@@ -196,6 +198,8 @@ Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun dout
 
 ### 2. Hétérogénéité des échelles
 
+![DAG Hétérogénéité](assets/heterogeneite_granularite.png)
+
 **Définition :** détecte les ruptures d'homogénéité dans les unités de mesure, qui faussent les calculs.
 
 **Métrique :** rapport entre les médianes de Paris et d'Évry, avec une alerte au-dessus de 1 000, complété par le nombre de valeurs atypiques dans chaque ville selon la méthode de l'IQR (en dehors de `Q1 - 1,5 × IQR` et `Q3 + 1,5 × IQR`).
@@ -218,6 +222,8 @@ Le même DAG mesure aussi la granularité de `IRIS` : 1 rue sur 12 (Broca) est r
 4. **Contrôle :** vérifier que le rapport repasse sous le seuil (environ 1,6 attendu), puis recalculer les moyennes des tables cibles. `Consommation_CSP` ne doit jamais mélanger deux unités.
 
 ### 3. Complétude des données
+
+![DAG Complétude](assets/completude.png)
 
 **Définition :** évalue la proportion de données manquantes par rapport au volume nécessaire aux calculs cibles.
 
@@ -244,6 +250,8 @@ Le même DAG mesure aussi la granularité de `IRIS` : 1 rue sur 12 (Broca) est r
 5. **Prévention :** déclencher une alerte si le taux de complétude d'un attribut clé passe sous un seuil à fixer.
 
 ### 4. Détection et élimination des doublons sémantiques
+
+![DAG Doublons](assets/doublons.png)
 
 **Définition :** identifie des enregistrements qui représentent la même entité réelle malgré des différences d'écriture (fautes de frappe, abréviations, variations de format).
 
@@ -282,6 +290,8 @@ Le tableau de bord affiche les métriques produites par les DAG, sans les recalc
 | `metrique_doublons_semantiques` | `doublons/audit_doublons.csv` |
 
 Si un fichier n'y figure pas, le tableau de bord cherche une copie à la racine du projet. Il indique en bas de page les fichiers lus et leur date, et signale ceux qui manquent.
+
+![Aperçu du Tableau de Bord DataScale](dashboard/dashboard.png)
 
 Pour le lancer depuis la racine du projet :
 
