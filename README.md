@@ -161,6 +161,8 @@ Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun dout
 
 ### 1. Conformité à un format, une codification
 
+![DAG Conformité](assets/conformite.png)
+
 **Définition :** vérifie que les données respectent un format prédéfini ou appartiennent à un ensemble de valeurs autorisées.
 
 **Métrique :** taux de conformité, soit le pourcentage de valeurs respectant le format attendu ou présentes dans la table de référence.
@@ -195,6 +197,8 @@ Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun dout
 4. **Prévention :** refuser à l'entrée tout code postal qui ne compte pas 5 chiffres et toute CSP absente du référentiel.
 
 ### 2. Hétérogénéité des échelles
+
+![DAG Hétérogénéité](assets/heterogeneite_granularite.png)
 
 **Définition :** détecte les ruptures d'homogénéité dans les unités de mesure, qui faussent les calculs.
 
@@ -236,6 +240,8 @@ Les 4 compteurs de la rue Broca sont comptés dans deux IRIS, car le nom de la r
 
 ### 3. Complétude des données
 
+![DAG Complétude](assets/completude.png)
+
 **Définition :** évalue la proportion de données manquantes par rapport au volume nécessaire aux calculs cibles.
 
 **Métrique :** taux de complétude par attribut clé, soit la part des lignes dont la valeur est renseignée. Une valeur nulle, vide, `nan`, `null` ou `none` compte comme manquante.
@@ -261,6 +267,8 @@ Les 4 compteurs de la rue Broca sont comptés dans deux IRIS, car le nom de la r
 5. **Prévention :** déclencher une alerte si le taux de complétude d'un attribut clé passe sous un seuil à fixer.
 
 ### 4. Détection et élimination des doublons sémantiques
+
+![DAG Doublons](assets/doublons.png)
 
 **Définition :** identifie des enregistrements qui représentent la même entité réelle malgré des différences d'écriture (fautes de frappe, abréviations, variations de format).
 
@@ -299,6 +307,8 @@ Le tableau de bord affiche les métriques produites par les DAG, sans les recalc
 | `metrique_doublons_semantiques` | `doublons/audit_doublons.csv` |
 
 Si un fichier n'y figure pas, le tableau de bord cherche une copie à la racine du projet. Il indique en bas de page les fichiers lus et leur date, et signale ceux qui manquent.
+
+![Aperçu du Tableau de Bord DataScale](dashboard/dashboard.png)
 
 Pour le lancer depuis la racine du projet :
 
