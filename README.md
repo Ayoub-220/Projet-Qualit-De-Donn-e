@@ -217,6 +217,23 @@ Le même DAG mesure aussi la granularité de `IRIS` : 1 rue sur 12 (Broca) est r
 3. **Prévention :** ajouter l'unité attendue à la description de chaque source et bloquer le chargement si le rapport dépasse le seuil.
 4. **Contrôle :** vérifier que le rapport repasse sous le seuil (environ 1,6 attendu), puis recalculer les moyennes des tables cibles. `Consommation_CSP` ne doit jamais mélanger deux unités.
 
+**Comment nous allons améliorer la granularité**
+
+Les 4 compteurs de la rue Broca sont comptés dans deux IRIS, car le nom de la rue ne suffit pas à les départager.
+
+1. **Enrichissement :** ajouter à `IRIS` les colonnes `Num_Debut` et `Num_Fin` pour les rues rattachées à plusieurs IRIS, à partir d'un référentiel officiel.
+2. **Jointure :** rattacher chaque compteur par la rue et par son numéro `N`. Les rues sans plage gardent leur seul IRIS.
+
+   ```sql
+   JOIN IRIS i
+       ON LOWER(TRIM(c.Nom_Rue)) = LOWER(TRIM(i.ID_Rue))
+      AND i.ID_Ville = 'Paris'
+      AND CAST(c.N AS INT) BETWEEN COALESCE(i.Num_Debut, 0)
+                               AND COALESCE(i.Num_Fin, 99999)
+   ```
+
+3. **Contrôle :** relancer l'ETL et le DAG. Aucun compteur ne doit plus correspondre à plus d'un IRIS.
+
 ### 3. Complétude des données
 
 **Définition :** évalue la proportion de données manquantes par rapport au volume nécessaire aux calculs cibles.
