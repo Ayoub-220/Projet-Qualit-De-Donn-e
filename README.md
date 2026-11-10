@@ -2,11 +2,11 @@
 
 **Projet M2 DataScale** : consommation électrique et population de Paris et d'Évry-Courcouronnes.
 
-Ce projet alimente trois tables cibles à partir de six sources, mesure la qualité de ces données et définit, pour chaque mesure, le processus d'amélioration que nous allons appliquer. La cohérence n'y figure pas, car elle sera traitée sur un autre jeu de données.
+Ce projet alimente trois tables cibles à partir de six sources, mesure la qualité de ces données et définit, pour chaque mesure, le processus d'amélioration que nous allons appliquer. La cohérence sera évaluée sur ces mêmes données.
 
-Le SQL ci-dessous est une première formalisation du mapping : **les données ne sont pas encore préparées**. Les requêtes partent des tables sources telles quelles et supposent que `NB_KW_Jour` et `Salair_Moyen` sont numériques. La fonction `UNACCENT` nécessite l'extension PostgreSQL du même nom.
+Le mapping commence par des **prétraitements**, pour que les tables cibles soient justes : conversion de l'unité de Paris, traduction des CSP de Paris en codes et harmonisation de l'écriture des IRIS. Les requêtes supposent que `NB_KW_Jour` et `Salair_Moyen` sont numériques. La fonction `UNACCENT` nécessite l'extension PostgreSQL du même nom.
 
-Le DAG `etl.py` applique ce mapping avec Spark SQL, sans aucune correction de qualité : il écrit les trois tables dans `dags/data/output/` et obtient les mêmes résultats que ces requêtes, arrondis à deux décimales. Il se limite à la préparation technique : conversion de la virgule décimale et normalisation du texte pour les jointures. Les anomalies restent donc visibles dans les tables cibles. Les corrections se font à part, sur les données : il suffit ensuite de relancer le DAG, sans changer les requêtes.
+Le DAG `etl.py` applique ces prétraitements et ce mapping avec Spark SQL. Il écrit les trois tables dans `dags/data/output/`, avec les mêmes résultats que ces requêtes, arrondis à deux décimales. Les fichiers sources ne sont jamais modifiés : les DAG de mesure de la qualité les auditent tels quels.
 
 ## Création des tables cibles
 
@@ -33,17 +33,66 @@ CREATE TABLE Consommation_CSP (
 );
 ```
 
+## Prétraitements
+
+Chaque prétraitement corrige un problème relevé par l'audit, qui empêcherait le mapping de produire des tables cibles justes. Ce sont des vues : les sources restent intactes.
+
+| Prétraitement | Problème corrigé | Effet sur les tables cibles |
+|---|---|---|
+| `NB_KW_Jour` de Paris divisé par 1 000 | Paris en Wh, Évry en kWh (rapport des médianes : 1 590) | Toutes les consommations sont en kWh |
+| CSP de Paris traduites en codes | Libellés (`Cadre`) au lieu des codes du référentiel (`3`) | Les personnes de Paris entrent dans `Consommation_CSP` |
+| Une seule écriture par IRIS | `AGUADO` et `Aguado` désignent le même IRIS | Une seule ligne `Aguado` dans `Consommation_IRIS_Evry` |
+
+```sql
+-- Paris : de Wh en kWh
+CREATE VIEW Consommation_Paris_Prep AS
+SELECT ID_Adr, N, Nom_Rue, Code_Postal, NB_KW_Jour / 1000 AS NB_KW_Jour
+FROM Consommation_Paris;
+
+-- Paris : libellés de CSP traduits en codes
+CREATE TABLE Correspondance_CSP (
+    Libelle VARCHAR(100) PRIMARY KEY,
+    ID_CSP VARCHAR(50)
+);
+INSERT INTO Correspondance_CSP VALUES
+    ('Agriculteur', '1'),
+    ('Commerçant / Artisan', '2'),
+    ('Cadre', '3'),
+    ('cadres et professions intellectuelles supérieures', '3'),
+    ('Professions intermédiaires', '4'),
+    ('Employé', '5'),
+    ('Ouvrier', '6');
+
+CREATE VIEW Population_Paris_Prep AS
+SELECT p.ID_Personne, p.Adresse, t.ID_CSP AS CSP
+FROM Population_Paris p
+JOIN Correspondance_CSP t ON LOWER(TRIM(p.CSP)) = LOWER(t.Libelle);
+
+-- IRIS : une seule écriture par IRIS (AGUADO et Aguado deviennent Aguado)
+CREATE VIEW IRIS_Prep AS
+SELECT ID_Rue, ID_Ville,
+       MAX(TRIM(ID_IRIS)) OVER (PARTITION BY LOWER(TRIM(ID_IRIS))) AS ID_IRIS
+FROM IRIS;
+```
+
+Certains problèmes ne sont pas corrigés, faute d'information fiable :
+
+- `Etudiant` et `Retraitée` n'ont pas de code dans `CSP` : ces 2 personnes de Paris sont écartées par la jointure.
+- Les consommations et adresses manquantes ne sont pas inventées : `AVG` ignore les valeurs manquantes, et un IRIS sans aucune consommation connue garde une moyenne vide.
+- La valeur atypique 548,49 d'Évry est conservée : elle est signalée pour vérification, pas supprimée.
+- Les codes postaux invalides n'interviennent dans aucune jointure : ils sont sans effet sur les tables cibles.
+
 ## Alimentation de `Consommation_IRIS_Paris`
 
-À Paris, `Nom_Rue` et `ID_Rue` contiennent le même libellé. Le rapprochement se fait sur la rue et sur la ville, car `ID_Ville` contient un nom de ville et non un code postal. La rue Broca étant rattachée à deux IRIS, ses compteurs comptent à la fois dans `Croulebarbe 7` et dans `Val de Grace 1`.
+À Paris, `Nom_Rue` et `ID_Rue` contiennent le même libellé. Le rapprochement se fait sur la rue et sur la ville, car `ID_Ville` contient un nom de ville et non un code postal. La rue Broca est rattachée à deux IRIS, et rien ne permet de savoir dans lequel se trouve chaque compteur : ses compteurs comptent donc à la fois dans `Croulebarbe 7` et dans `Val de Grace 1` (voir l'amélioration de la granularité).
 
 ```sql
 INSERT INTO Consommation_IRIS_Paris (ID_IRIS, Conso_moyenne_annuelle)
 SELECT
     i.ID_IRIS,
     AVG(c.NB_KW_Jour) * 365 AS Conso_moyenne_annuelle
-FROM Consommation_Paris c
-JOIN IRIS i
+FROM Consommation_Paris_Prep c
+JOIN IRIS_Prep i
     ON LOWER(TRIM(c.Nom_Rue)) = LOWER(TRIM(i.ID_Rue))
    AND i.ID_Ville = 'Paris'
 GROUP BY i.ID_IRIS;
@@ -59,7 +108,7 @@ SELECT
     i.ID_IRIS,
     AVG(c.NB_KW_Jour) * 365 AS Conso_moyenne_annuelle
 FROM Consommation_Evry c
-JOIN IRIS i
+JOIN IRIS_Prep i
     ON LOWER(TRIM(c.Nom_Rue)) LIKE ('% ' || LOWER(TRIM(i.ID_Rue)))
    AND i.ID_Ville = 'Evry-Courcouronnes'
 GROUP BY i.ID_IRIS;
@@ -67,15 +116,15 @@ GROUP BY i.ID_IRIS;
 
 ## Alimentation de `Consommation_CSP`
 
-`Adresse` étant un texte libre, elle est comparée à l'adresse reconstruite à partir de `N` et `Nom_Rue`, sans tenir compte de la casse, des accents et des espaces. Les CSP de Paris étant des libellés et non des codes, la jointure finale avec `CSP` ne retient à ce stade que les personnes d'Évry.
+`Adresse` étant un texte libre, elle est comparée à l'adresse reconstruite à partir de `N` et `Nom_Rue`, sans tenir compte de la casse, des accents et des espaces. Grâce à la traduction des CSP de Paris, les personnes des deux villes rejoignent le référentiel `CSP`.
 
 ```sql
 INSERT INTO Consommation_CSP (ID_CSP, Conso_moyenne_annuelle, Salaire_Moyen)
 WITH Population_Consommation AS (
     -- Paris : Nom_Rue ne contient pas le type de voie
     SELECT p.CSP, c.NB_KW_Jour
-    FROM Population_Paris p
-    JOIN Consommation_Paris c
+    FROM Population_Paris_Prep p
+    JOIN Consommation_Paris_Prep c
       ON REPLACE(LOWER(UNACCENT(p.Adresse)), ' ', '')
        = 'paris,' || c.N || 'rue' || REPLACE(LOWER(UNACCENT(c.Nom_Rue)), ' ', '')
     UNION ALL
@@ -95,6 +144,30 @@ JOIN CSP csp ON LOWER(TRIM(pc.CSP)) = LOWER(TRIM(csp.ID_CSP))
 GROUP BY csp.ID_CSP, csp.Salair_Moyen;
 ```
 
+## Tables cibles obtenues
+
+Consommations moyennes annuelles en kWh, arrondies à deux décimales.
+
+| `Consommation_IRIS_Paris` | | `Consommation_IRIS_Evry` | |
+|---|---|---|---|
+| Clignancourt 1 | 4 927,71 | Aguado | 3 030,70 |
+| Croulebarbe 7 | 5 383,91 | Champs Elysees | 2 717,40 |
+| Hopital Saint-Louis 3 | 4 453,68 | Champtier du Coq | 3 214,00 |
+| Pere Lachaise 1 | 6 570,25 | Parc aux Lievres | *(aucune consommation connue)* |
+| Saint-Georges 7 | 5 110,13 | Pyramides Centre | 7 178,40 |
+| Val de Grace 1 | 5 383,91 | | |
+
+| `Consommation_CSP` | Conso moyenne annuelle | Salaire moyen |
+|---|---|---|
+| 1 | 6 570,19 | 24 780 |
+| 2 | 1 825,05 | 24 780 |
+| 3 | 54 923,14 | 39 860 |
+| 4 | 4 905,22 | 29 720 |
+| 5 | 4 207,41 | 24 450 |
+| 6 | 7 130,35 | *(manquant dans `CSP`)* |
+
+La CSP 3 est tirée vers le haut par la valeur atypique 548,49 kWh par jour d'Évry, encore à vérifier.
+
 ## Contraintes d'intégrité référentielle
 
 Certains liens ne peuvent pas être de vraies clés étrangères SQL, car les valeurs ne sont pas identiques d'une table à l'autre. Ils sont réalisés par les jointures ci-dessus, qui écartent les lignes sans correspondance. C'est le cas des 4 lignes de `Consommation_Evry` situées rue Voltaire et rue Pierre et Marie Curie, absentes de `IRIS`.
@@ -104,7 +177,7 @@ Certains liens ne peuvent pas être de vraies clés étrangères SQL, car les va
 | Attribut | Lien | Type |
 |---|---|---|
 | `Population_Evry(CSP)` | `CSP(ID_CSP)` | Clé étrangère |
-| `Population_Paris(CSP)` | `CSP(ID_CSP)` | Clé étrangère attendue, non respectée (libellés) |
+| `Population_Paris(CSP)` | `CSP(ID_CSP)` | Clé étrangère après traduction par `Correspondance_CSP` (libellés dans la source) |
 | `Population_Paris(Adresse)` | `Consommation_Paris(N, Nom_Rue)` | Lien logique après normalisation |
 | `Population_Evry(Adresse)` | `Consommation_Evry(N, Nom_Rue)` | Lien logique après normalisation |
 | `Consommation_Paris(Nom_Rue)` | `IRIS(ID_Rue)`, avec `ID_Ville = 'Paris'` | Lien logique |
@@ -152,7 +225,7 @@ Chaque mesure suit le même cycle :
 
 1. **Mesurer** le niveau de qualité avec la métrique définie.
 2. **Analyser** les lignes en erreur pour distinguer une vraie erreur d'une règle mal adaptée.
-3. **Corriger** dans une copie de travail, sans jamais modifier les fichiers sources.
+3. **Corriger** par un prétraitement de l'ETL quand la règle est sûre, sans jamais modifier les fichiers sources. Sinon, demander la correction à la source.
 4. **Tracer** chaque correction : table, ligne, valeur d'origine, nouvelle valeur et règle appliquée.
 5. **Prévenir** le retour de l'erreur par un contrôle en entrée du pipeline.
 6. **Mesurer à nouveau** : relancer l'ETL et les DAG de mesure sur les données corrigées, puis comparer le résultat à l'objectif.
@@ -182,17 +255,7 @@ Une valeur n'est corrigée automatiquement que si la règle ne laisse aucun dout
 **Comment nous allons améliorer**
 
 1. **Codes postaux :** remplacer la valeur invalide par le code déjà utilisé pour la même rue et la même ville. Par exemple, `750050` (rue Broca) devient `75005`. Sans code de référence fiable, la ligne est signalée : c'est le cas de `91000a` (rue Pablo Picasso), seule ligne de sa rue.
-2. **CSP de Paris :** créer une table de correspondance entre libellés et codes, à faire valider :
-
-   | Libellé dans `Population_Paris` | `ID_CSP` |
-   |---|---|
-   | Agriculteur | 1 |
-   | Commerçant / Artisan | 2 |
-   | Cadre ; cadres et professions intellectuelles supérieures | 3 |
-   | Professions intermédiaires | 4 |
-   | Employé | 5 |
-   | Ouvrier | 6 |
-
+2. **CSP de Paris :** traduire les libellés en codes avec la table `Correspondance_CSP`. Ce prétraitement est appliqué par l'ETL (voir la section Prétraitements).
 3. **Libellés sans code :** `Etudiant` et `Retraitée` n'ont aucune catégorie dans le référentiel. Avec la table de correspondance, le taux de Paris passe donc à 83,33 %. Ces libellés restent signalés tant qu'il n'est pas décidé de les exclure ou d'étendre le référentiel, ce qui est nécessaire pour atteindre 100 %.
 4. **Prévention :** refuser à l'entrée tout code postal qui ne compte pas 5 chiffres et toute CSP absente du référentiel.
 
@@ -217,9 +280,9 @@ Le même DAG mesure aussi la granularité de `IRIS` : 1 rue sur 12 (Broca) est r
 **Comment nous allons améliorer**
 
 1. **Détection :** comparer les médianes des deux villes et signaler tout rapport supérieur à 1 000.
-2. **Harmonisation :** diviser les valeurs de Paris par 1 000 dans une colonne dédiée, en conservant la valeur d'origine.
+2. **Harmonisation :** diviser les valeurs de Paris par 1 000. Ce prétraitement est appliqué par l'ETL, et la source garde la valeur d'origine.
 3. **Prévention :** ajouter l'unité attendue à la description de chaque source et bloquer le chargement si le rapport dépasse le seuil.
-4. **Contrôle :** vérifier que le rapport repasse sous le seuil (environ 1,6 attendu), puis recalculer les moyennes des tables cibles. `Consommation_CSP` ne doit jamais mélanger deux unités.
+4. **Contrôle :** sur les données prétraitées, le rapport des médianes vaut environ 1,59, sous le seuil. `Consommation_CSP` ne mélange plus deux unités. L'audit, lui, mesure toujours la source brute et reste à 1 590 tant que le fournisseur n'a pas corrigé l'unité.
 
 **Comment nous allons améliorer la granularité**
 

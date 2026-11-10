@@ -1,11 +1,12 @@
 """ETL DataScale - Airflow 2.10.2 / Spark SQL.
 
 3 groupes x 3 taches : verifier -> transformer/agreger -> publier.
-Le mapping est ecrit en SQL et applique tel quel : aucune correction de qualite ici,
-les anomalies des sources restent donc visibles dans les tables cibles.
-Seule la preparation technique est faite : decimales converties et cles de jointure
-normalisees. Les corrections se font a part, sur les sources : il suffit ensuite de
-relancer ce DAG, sans changer les requetes.
+Chaque source passe par trois couches de vues SQL :
+  1. <Source>_Brut : le CSV lu tel quel, tout en texte ;
+  2. <Source>      : typage (virgule decimale) et cles de jointure, sans changer les valeurs ;
+  3. <Source>_Prep : pretraitements decrits dans le README (unite de Paris, CSP de Paris,
+                     ecriture des IRIS), pour que le mapping produise les bonnes tables cibles.
+Les fichiers sources ne sont jamais modifies : les DAG de mesure continuent de les auditer bruts.
 """
 from datetime import datetime
 import csv
@@ -79,7 +80,7 @@ def population_preparee(vue):
         FROM {vue}_Brut"""
 
 
-# Preparation technique uniquement : une vue SQL par source, sans ecarter aucune ligne.
+# Couche 2 : preparation technique, une vue SQL par source, sans ecarter aucune ligne.
 PREPARATIONS = {
     "conso_paris": conso_preparee("Consommation_Paris"),
     "conso_evry": conso_preparee("Consommation_Evry"),
@@ -91,14 +92,49 @@ PREPARATIONS = {
         FROM CSP_Brut""",
 }
 
-# Memes jointures que le SQL du README.
+# Couche 3 : pretraitements, memes regles que la section Pretraitements du README.
+# Une liste par source : les instructions sont executees dans l'ordre.
+PRETRAITEMENTS = {
+    # Paris est en Wh, Evry en kWh (rapport des medianes : 1 590) : on ramene Paris en kWh.
+    "conso_paris": ["""
+        CREATE OR REPLACE TEMP VIEW Consommation_Paris_Prep AS
+        SELECT ID_Adr, N, Nom_Rue, Code_Postal,
+               NB_KW_Jour / 1000 AS NB_KW_Jour,
+               Rue_Cle
+        FROM Consommation_Paris"""],
+    # Les CSP de Paris sont des libelles : on les traduit en codes du referentiel.
+    # Les libelles sans code (Etudiant, Retraitee) sont ecartes par la jointure interne.
+    "pop_paris": ["""
+        CREATE OR REPLACE TEMP VIEW Correspondance_CSP AS
+        SELECT * FROM VALUES
+            ('Agriculteur', '1'),
+            ('Commerçant / Artisan', '2'),
+            ('Cadre', '3'),
+            ('cadres et professions intellectuelles supérieures', '3'),
+            ('Professions intermédiaires', '4'),
+            ('Employé', '5'),
+            ('Ouvrier', '6')
+        AS t(Libelle, ID_CSP)""", """
+        CREATE OR REPLACE TEMP VIEW Population_Paris_Prep AS
+        SELECT p.ID_Personne, p.Adresse, t.ID_CSP AS CSP, p.Adresse_Cle
+        FROM Population_Paris p
+        JOIN Correspondance_CSP t ON LOWER(TRIM(p.CSP)) = LOWER(t.Libelle)"""],
+    # Un meme IRIS ecrit AGUADO et Aguado : on garde une seule ecriture par IRIS.
+    "iris": ["""
+        CREATE OR REPLACE TEMP VIEW IRIS_Prep AS
+        SELECT ID_Rue, ID_Ville,
+               MAX(TRIM(ID_IRIS)) OVER (PARTITION BY LOWER(TRIM(ID_IRIS))) AS ID_IRIS
+        FROM IRIS"""],
+}
+
+# Mapping : memes jointures que le SQL du README, sur les vues pretraitees.
 REQUETES = {
     "paris": """
         SELECT
             i.ID_IRIS,
             CAST(AVG(c.NB_KW_Jour) * 365 AS DECIMAL(12, 2)) AS Conso_moyenne_annuelle
-        FROM Consommation_Paris c
-        JOIN IRIS i
+        FROM Consommation_Paris_Prep c
+        JOIN IRIS_Prep i
             ON LOWER(TRIM(c.Nom_Rue)) = LOWER(TRIM(i.ID_Rue))
            AND i.ID_Ville = 'Paris'
         GROUP BY i.ID_IRIS""",
@@ -107,7 +143,7 @@ REQUETES = {
             i.ID_IRIS,
             CAST(AVG(c.NB_KW_Jour) * 365 AS DECIMAL(12, 2)) AS Conso_moyenne_annuelle
         FROM Consommation_Evry c
-        JOIN IRIS i
+        JOIN IRIS_Prep i
             ON LOWER(TRIM(c.Nom_Rue)) LIKE ('% ' || LOWER(TRIM(i.ID_Rue)))
            AND i.ID_Ville = 'Evry-Courcouronnes'
         GROUP BY i.ID_IRIS""",
@@ -115,8 +151,8 @@ REQUETES = {
         WITH Population_Consommation AS (
             -- Paris : Nom_Rue ne contient pas le type de voie
             SELECT p.CSP, c.NB_KW_Jour
-            FROM Population_Paris p
-            JOIN Consommation_Paris c
+            FROM Population_Paris_Prep p
+            JOIN Consommation_Paris_Prep c
               ON p.Adresse_Cle = 'paris,' || c.N || 'rue' || c.Rue_Cle
             UNION ALL
             -- Evry : Nom_Rue contient deja le type de voie
@@ -181,10 +217,12 @@ def lire(spark, cle):
 
 
 def creer_vues(spark, branche):
-    """Expose chaque source de la branche comme une table SQL."""
+    """Expose chaque source de la branche en trois couches : brute, typee, pretraitee."""
     for cle in SOURCES[branche]:
         lire(spark, cle).createOrReplaceTempView(f"{VUES[cle]}_Brut")
         spark.sql(f"CREATE OR REPLACE TEMP VIEW {VUES[cle]} AS {PREPARATIONS[cle]}")
+        for instruction in PRETRAITEMENTS.get(cle, []):
+            spark.sql(instruction)
 
 
 def transformer(spark, branche):
